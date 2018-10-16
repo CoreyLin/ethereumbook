@@ -244,15 +244,15 @@ DApps的概念旨在将万维网带入其下一个自然进化的阶段，将使
 最终，以太坊平台的开发将变慢，其接口将变得固定。但与此同时，创新是驱动原则。你最好跟上，因为没有人会为你减速。
 
 [[why_learn]]
-=== Why Learn Ethereum?
+=== 为什么学习以太坊？
 
-Blockchains have a very steep learning curve, as they combine multiple disciplines into one domain: programming, information security, cryptography, economics, distributed systems, peer-to-peer networks, etc. Ethereum makes this learning curve a lot less steep, so you can get started quickly. But just below the surface of a deceptively simple environment lies a lot more. As you learn and start looking deeper, there's always another layer of complexity and wonder.
+区块链的学习曲线非常陡峭，因为它们将多个学科组合成一个领域：编程，信息安全，密码学，经济学，分布式系统，点对点网络等。以太坊使这一学习曲线不那么陡峭，所以你可以快速入门。但是，在一个看似简单的环境表面之下还有更多。当你学习并开始更深入地思考时，总会有另一层复杂性和奇迹。
 
-Ethereum is a great platform for learning about blockchains and it's building a massive community of developers, faster than any other blockchain platform. More than any other, Ethereum is a _developer's blockchain_, built by developers for developers. A developer familiar with JavaScript applications can drop into Ethereum and start producing working code very quickly. For the first few years of Ethereum's life, it was common to see T-shirts announcing that you can create a token in just five lines of code. Of course, this is a double-edged sword. It's easy to write code, but it's very hard to write _good_ and _secure_ code.
+以太坊是学习区块链的绝佳平台，它正在建立一个庞大的开发者社区，比任何其他区块链平台都要快。最重要的是，以太坊开发者的区块链，为开发者构建，被开发者构建。熟悉JavaScript应用程序的开发人员可以进入以太坊并开始非常快速地生成可以工作的代码。在以太坊生命的最初几年，通常会看到T恤宣布你可以用五行代码创建一个通证。当然，这是一把双刃剑。编写代码很容易，但编写好的和安全的代码非常困难。
 
 [[teaching_objectives]]
-=== What This Book Will Teach You
+=== 本书将教你什么
 
-This book dives into Ethereum and examines every component. You will start with a simple transaction, dissect how it works, build a simple contract, make it better, and follow its journey through the Ethereum system.
+这本书深入以太坊并检查每个组件。你将从一个简单的交易开始，剖析它的工作原理，建立一个简单的合约，优化它，并跟随它开启以太坊系统的旅程。
 
-You will learn not only how to use Ethereum&#x2014;how it works&#x2014;but also why it is designed the way it is. You will be able to understand how each of the pieces works, and how they fit together and why.
+你不仅将学习如何使用以太坊 - 它是如何工作的 - 而且还将学习它为何如此设计。你将能够理解每个部分的工作原理，以及它们如何组合在一起以及为什么。
