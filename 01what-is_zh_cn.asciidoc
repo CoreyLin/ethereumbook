@@ -220,28 +220,28 @@ https://parity.io/
 [[evolving_WWW]]
 === 第三代互联网
 
-In 2004 the term "Web 2.0" came to prominence, describing an evolution of the web toward user-generated content, responsive interfaces, and interactivity. Web 2.0 is not a technical specification, but rather a term describing the new focus of web applications.
+2004年，“Web 2.0”这个术语引起了人们的关注，描述了面向用户生成的内容，响应式接口和交互性的Web的演进。 Web 2.0不是一个技术规范，而是一个描述Web应用程序新焦点的术语。
 
-The concept of DApps is meant to take the World Wide Web to its next natural evolutionary stage, introducing decentralization with peer-to-peer protocols into every aspect of a web application. The term used to describe this evolution is _web3_, meaning the third "version" of the web. First proposed by Gavin Wood, web3 represents a new vision and focus for web applications: from centrally owned and managed applications, to applications built on decentralized protocols.
+DApps的概念旨在将万维网带入其下一个自然进化的阶段，将使用点对点协议的去中心化引入Web应用程序的各个方面。用于描述这种演进的术语是web3，意思是web的第三个“版本”。 Web3首先由Gavin Wood提出，代表了Web应用程序的新愿景和重点：从集中所有和管理的应用程序到基于去中心化协议的应用程序。
 
-In later chapters we'll explore the Ethereum web3.js JavaScript library, which bridges JavaScript applications that run in your browser with the Ethereum blockchain. The web3.js library also includes an interface to a P2P storage network called _Swarm_ and a P2P messaging service called _Whisper_. With these three components included in a JavaScript library running in your web browser, developers have a full application development suite that allows them to build web3 DApps.
+在后面的章节中，我们将探索以太坊web3.js JavaScript库，它作为纽带将浏览器中运行的JavaScript应用程序与以太坊区块链联系起来。 web3.js库还包括一个名为Swarm的P2P存储网络接口和一个名为Whisper的P2P消息服务。通过在Web浏览器中运行的JavaScript库中包含这三个组件，开发人员可以使用完整的应用程序开发套件来构建web3 DApp。
 
 [[development_culture]]
-=== Ethereum's Development Culture
+=== 以太坊的开发文化
 
-So far we've talked about how Ethereum's goals and technology differ from those of other blockchains that preceded it, like Bitcoin. Ethereum also has a very different development culture.
+到目前为止，我们已经讨论过以太坊的目标和技术与之前的其他区块链（如比特币）的区别。以太坊也有着截然不同的开发文化。
 
-In Bitcoin, development is guided by conservative principles: all changes are carefully studied to ensure that none of the existing systems are disrupted. For the most part, changes are only implemented if they are backward compatible. Existing clients are allowed to opt-in, but will continue to operate if they decide not to upgrade.
+在比特币中，开发遵循保守原则：所有变更都经过仔细研究，以确保没有任何现有系统被破坏。在大多数情况下，只有在向后兼容时才会实施更改。允许现有客户选择加入，但如果他们决定不升级，则会继续运营。
 
-In Ethereum, by comparison, the community's development culture is focused on the future rather than the past. The (not entirely serious) mantra is "move fast and break things." If a change is needed, it is implemented, even if that means invalidating prior assumptions, breaking compatibility, or forcing clients to update. Ethereum's development culture is characterized by rapid innovation, rapid evolution, and a willingness to deploy forward-looking improvements, even if this is at the expense of some backward compatibility.
+相比之下，在以太坊，社区的开发文化关注的是未来而非过去。 （并非完全严肃）的口头禅是“快速行动并打破局面”。如果需要进行更改，则会实施更改，即使这意味着使先前的假设无效，破坏兼容性或强制客户端更新。以太坊的开发文化的特点是快速创新，快速发展，并愿意部署前瞻性的改进，即使这是以牺牲一些向后兼容性为代价的。
 
-What this means to you as a developer is that you must remain flexible and be prepared to rebuild your infrastructure as some of the underlying assumptions change. One of the big challenges facing developers in Ethereum is the inherent contradiction between deploying code to an immutable system and a development platform that is still evolving. You can't simply "upgrade" your smart contracts. You must be prepared to deploy new ones, migrate users, apps, and funds, and start over.
+作为开发人员，这对你意味着你必须保持灵活性并准备好重建你的基础架构，因为一些基本假设会发生变化。以太坊开发人员面临的一大挑战是将代码部署到不可变系统与仍在进化的开发平台之间固有的矛盾。你不能简单地“升级”智能合约。您必须准备好部署新的智能合约，迁移用户，应用程序和资金，然后重新开始。
 
-Ironically, this also means that the goal of building systems with more autonomy and less centralized control is still not fully realized. Autonomy and decentralization require a bit more stability in the platform than you're likely to get in Ethereum in the next few years. In order to "evolve" the platform, you have to be ready to scrap and restart your smart contracts, which means you have to retain a certain degree of control over them.
+具有讽刺意味的是，这也意味着构建具有更多自主权和更少集中控制的系统的目标仍未完全实现。自主权和去中心化要求的平台稳定性比你未来几年内可能在以太坊中获得的稳定性更高。为了“进化”平台，你必须准备好废弃并重新启动智能合约，这意味着你必须对它们保持一定程度的控制。
 
-But, on the positive side, Ethereum is moving forward very fast. There's little opportunity for "bike-shedding," an expression that means holding up development by arguing over minor details such as how to build the bicycle shed at the back of a nuclear power station. If you start bike-shedding, you might suddenly discover that while you were distracted the rest of the development team changed the plan and ditched bicycles in favor of autonomous hovercraft.
+但是，从积极的方面来看，以太坊正在快速前进。 发生"bike-shedding"（花费不成比例的时间和精力在一个无关紧要或不重要的细节上）的机会很少，bike-shedding意味着通过争论一些细节，例如如何在核电站后面建造自行车棚来阻止发展。如果你开始bike-shedding，你可能会突然发现，当你分心的时候，开发团队的其他人改变了计划并放弃了自行车而转向了自主气垫船。
 
-Eventually, the development of the Ethereum platform will slow down and its interfaces will become fixed. But in the meantime, innovation is the driving principle. You'd better keep up, because no one will slow down for you.
+最终，以太坊平台的开发将变慢，其接口将变得固定。但与此同时，创新是驱动原则。你最好跟上，因为没有人会为你减速。
 
 [[why_learn]]
 === Why Learn Ethereum?
