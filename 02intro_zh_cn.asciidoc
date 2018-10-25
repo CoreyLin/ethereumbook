@@ -368,7 +368,7 @@ Solidity编译器是一个独立的可执行文件，作为各种框架的一部
 
 使用你的Chrome浏览器（之前安装过MetaMask钱包）导航到Remix IDE：https://remix.ethereum.org[]。
 
-当你第一次加载Remix时，它将以一个名为ballot.sol的示例合约开始。我们不需要它，所以关闭它，单击选项卡一角的x，如<<remix_close_tab>所示。
+当你第一次加载Remix时，它将以一个名为ballot.sol的示例合约开始。我们不需要它，所以关闭它，单击选项卡一角的x，如<<remix_close_tab>>所示。
 
 [[remix_close_tab]]
 .Close the default example tab
