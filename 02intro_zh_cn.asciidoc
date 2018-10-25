@@ -193,7 +193,7 @@ image::images/metamask_ropsten_faucet.png["MetaMask Ropsten Test Faucet"]
 0x7c7ad5aaea6474adccf6f5c5d6abed11b70a350fbc6f9590109e099568090c57
 ----
 
-在几秒钟内，这笔新交易将由Ropsten矿工挖矿，你的MetaMask钱包将显示1 ETH的余额。单击交易ID，你的浏览器将带你进入一个区块浏览器，这是一个允许你可视化和浏览区块，地址和交易的网站。 MetaMask使用https://etherscan.io/[Etherscan]区块浏览器，这是一个比较流行的以太坊区块浏览器。含有Ropsten测试Faucet付款的交易显示在<<ropsten_block_explorer>>中。
+在几秒钟内，这笔新交易将由Ropsten矿工挖矿，你的MetaMask钱包将显示1 ETH的余额。单击交易ID，你的浏览器将带你进入一个区块浏览器，这是一个允许你可视化和浏览区块，地址和交易的网站。 MetaMask使用 https://etherscan.io/[Etherscan] 区块浏览器，这是一个比较流行的以太坊区块浏览器。含有Ropsten测试Faucet付款的交易显示在<<ropsten_block_explorer>>中。
 
 [[ropsten_block_explorer]]
 .Etherscan Ropsten block explorer
