@@ -96,7 +96,7 @@ Emerald Wallet:: Emerald Wallet旨在与以太坊Classic区块链配合使用，
 [[installing_MetaMask]]
 === MetaMask入门
 
-打开 Google Chrome浏览器并导航至https://chrome.google.com/webstore/category/extensions[].
+打开 Google Chrome浏览器并导航至 https://chrome.google.com/webstore/category/extensions[].
 
 搜索“MetaMask”并单击狐狸的标志。你应该会看到类似于显示在<<metamask_download>>中的结果
 
