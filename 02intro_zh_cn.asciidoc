@@ -1,1 +1,360 @@
+[[intro_chapter]]
+== 以太坊基础
 
+在本章中，我们将开始探索以太坊，学习如何使用钱包，如何创建交易，以及如何运行一个基本的智能合约。
+
+
+[[ether_units]]
+=== 以太币单位
+
+以太坊的货币单位称为ether，也称为“ETH”或符号Ξ（来自希腊字母“Xi”，看起来像一个程式化的大写字母E）或者，不是那么常见的，♦:例如，1 ether，或1 ETH ，或Ξ1，或♦1。
+
+
+[TIP]
+====
+使用Unicode字符U+039E表示Ξ，U+2666表示♦。
+====
+
+Ether被细分为更小的单位，直到可能的最小单位，称为wei。一个ether是1 quintillion wei（1 * 10^18^或1,000,000,000,000,000,000）。你可能会听到人们也把该货币称为“Ethereum”，但这是一个常见的初学者的错误。Ethereum是系统，ether是货币。
+
+ether的值总是在以太坊内部表示为以wei表示的无符号整数值。当你交易1 ether时，交易将编码1000000000000000000 wei作为值。
+
+Ether的各种面额都有一个使用国际单位制（SI）的学名和一个口语名称，以向许多计算和密码学的伟大思想致敬。
+
+<<ether_denominations>>显示各种单位，其口语（通用）名称及其SI名称。为了与值的内部表示保持一致，该表把所有面额显示为wei（第一行），在第7行中ether显示为10^18^ wei：
+
+[[ether_denominations]]
+.Ether denominations and unit names
+[options="header"]
+|===
+| Value (in wei) | Exponent | Common name | SI name
+| 1 | 1 | wei | Wei
+| 1,000 | 10^3^ | Babbage | Kilowei or femtoether
+| 1,000,000 | 10^6^ | Lovelace | Megawei or picoether
+| 1,000,000,000 | 10^9^ | Shannon | Gigawei or nanoether
+| 1,000,000,000,000 | 10^12^ | Szabo | Microether or micro
+| 1,000,000,000,000,000 | 10^15^ | Finney | Milliether or milli
+| _1,000,000,000,000,000,000_ | _10^18^_ | _Ether_ | _Ether_
+| 1,000,000,000,000,000,000,000 | 10^21^ | Grand | Kiloether
+| 1,000,000,000,000,000,000,000,000 | 10^24^ | | Megaether
+|===
+
+[[choosing_eth_wallet]]
+=== 选择一个以太坊钱包
+
+“钱包”这个词已经意味着很多东西，尽管它们都是相关的，并且在日常的基础上归结为几乎相同的东西。我们将使用术语“钱包”来表示可帮助你管理以太坊帐户的软件应用程序。简而言之，以太坊钱包是你通往以太坊系统的门户。它保存你的密钥，可以代表你创建和广播交易。选择以太坊钱包可能很困难，因为有许多不同的选择，它们都具有不同的功能和设计。有些更适合初学者，有些更适合专家。以太坊平台本身仍在不断改进，“最佳”钱包通常是适应平台升级带来的变化的钱包。
+
+但别担心！如果你选择一个钱包并且不喜欢它的工作方式 - 或者如果你最初喜欢它，但后来想尝试别的东西 - 你可以很容易地改变钱包。你所要做的就是进行一项交易，将你的资金从旧钱包发送到新钱包，或者导出你的私钥并将其导入新的钱包。
+
+我们选择了三种不同类型的钱包作为整本书的例子：手机钱包，桌面钱包和基于web的钱包。我们选择了这三个钱包，是因为它们代表了广泛的复杂性和功能。但是，选择这些钱包并不是对其质量或安全性的背书。它们只是演示和测试的好的起点。
+
+请记住，要使钱包应用程序正常工作，它必须能够访问你的私钥，因此从你信任的来源下载和使用钱包应用程序至关重要。幸运的是，一般来说，钱包应用程序越流行，它就越可靠。尽管如此，最好避免“将所有鸡蛋放在一个篮子里”并让你的以太坊帐户分散在几个钱包中。
+
+以下是一些不错的钱包：
+
+MetaMask:: MetaMask是一个浏览器扩展钱包，可在你的浏览器（Chrome，Firefox，Opera或Brave Browser）中运行。它易于使用且便于测试，因为它能够连接到各种以太坊节点和测试区块链。 MetaMask是一个基于web的钱包。
+
+Jaxx:: Jaxx是一个多平台和多种货币的钱包，可在各种操作系统上运行，包括Android，iOS，Windows，macOS和Linux。对于新用户而言，它通常是一个不错的选择，因为它的设计简单易用。Jaxx可以是移动或桌面钱包，具体取决于你在哪里安装它。
+
+MyEtherWallet (MEW):: MyEtherWallet是一个基于web的钱包，可以在任何浏览器中运行。它具有我们将在许多示例中探索的多种复杂功能。 MyEtherWallet是一个基于web的钱包。
+
+Emerald Wallet:: Emerald Wallet旨在与以太坊Classic区块链配合使用，但与其他基于以太坊的区块链兼容。它是一个开源桌面应用程序，可在Windows，macOS和Linux下运行。 Emerald Wallet可以运行完整节点或连接到公共远程节点，以“轻”模式工作。它还有一个配套工具，可以从命令行执行所有操作。
+
+我们从在桌面上安装MetaMask开始，但首先，我们将简要讨论控制和管理密钥。
+
+[[control_responsibility]]
+=== 控制和责任
+
+像以太坊这样的开放式区块链很重要，因为它们作为一个去中心化的系统运行。这意味着很多事情，但一个关键的方面是，以太坊的每个用户都可以 - 并且应该 - 控制他们自己的私钥，这些是控制对资金和智能合约的访问的东西。我们有时将访问资金和智能合约的组合称为“账户”或“钱包”。这些术语的功能可能会非常复杂，因此我们稍后会详细介绍。然而，作为一个基本原则，它就像一个私钥等于一个“帐户”一样容易。有些用户选择通过使用第三方保管人（例如在线交易所）来放弃对其私钥的控制。在本书中，我们将教你如何控制和管理自己的私钥。
+
+与控制相伴而来的是巨大的责任。如果你丢失了私钥，则会失去对你的资金和合约的访问权限。没有人可以帮助你重新获得访问权限 - 你的资金将被永久锁定。以下是一些帮助你管理此责任的提示：
+
+* 不要对安全性凑合。使用久经考验的标准方法。
+
+* 帐户越重要（例如，受控资金的价值越高，或可访问的智能合约越重要），应采取更高的安全措施。
+
+* 从air-gapped（气隙）设备获得最高安全性，但不是每个帐户都需要此级别。
+
+* 切勿以普通形式存储你的私钥，尤其是以数字方式存储。幸运的是，今天的大多数用户界面甚至不会让您看到原始私钥。
+
+* 私钥可以以加密形式，作为一个数字"keystore"文件存储。加密后，他们需要密码才能解锁。当系统提示你选择一个密码时，请将密码登记设置得强一些（即，长且随机），备份密码，不要共享密码。如果你没有密码管理器，请将其记下并存放在安全且保密的地方。要访问你的帐户，你同时需要keystore文件和密码。
+
+* 不要将任何密码存储在数字文档，数码照片，屏幕截图，在线驱动器，加密的PDF等中。再提醒一次，不要在安全性方面凑合。使用密码管理器或笔和纸。
+
+* 当系统提示你将密钥备份为助记词序列时，请使用笔和纸进行物理备份。不要把这项任务留到以后再做;你会忘记的。这些备份（助记词）可用于重建你的私钥，以防你丢失你的系统中保存的所有数据，或者忘记或丢失密码。但是，攻击者也可以使用它们来获取你的私钥，因此不要以数字方式存储它们，并将物理副本安全地存放在锁好的抽屉或保险箱中。
+
+* 在转移任何大额金额（特别是向新地址）之前，首先进行小的测试交易（例如，小于1美元的价值）并等待接收确认。
+
+* 创建新帐户时，首先只向新地址发送一个小测试交易。你收到测试交易后，请尝试从该帐户再次发回。创建帐户可能会出错的原因有很多，如果出现问题，最好在只有一小笔损失的时候就发现。如果先进行一下测试，一切都很好。
+
+* 公共区块浏览器是一种独立查看一笔交易是否已被网络接受的简单方法。但是，这种便利性会对你的隐私产生负面影响，因为你会向区块浏览器透露你的地址，利用这个地址可以对你进行跟踪。
+
+* 不要向本书中显示的任何地址汇款。私钥列在书中，有人会立即拿走这笔钱。
+
+现在我们已经介绍了密钥管理和安全性的一些基本最佳实践，让我们开始使用MetaMask！
+
+[[installing_MetaMask]]
+=== MetaMask入门
+
+打开 Google Chrome浏览器并导航至https://chrome.google.com/webstore/category/extensions[].
+
+搜索“MetaMask”并单击狐狸的标志。你应该会看到类似于显示在<<metamask_download>>中的结果
+
+[[metamask_download]]
+.The detail page of the MetaMask Chrome extension
+image::images/metamask_download.png["MetaMask Detail Page"]
+
+验证你是否正在下载真正的MetaMask扩展程序非常重要，因为有时候人们可以通过谷歌的过滤器隐藏恶意扩展。真正的一个是：
+
+* 在地址栏中显示ID nkbihfbeogaeaoehlefnkodbefgpgknn
+
+* 由https://metamask.io提供
+
+* 有超过1,400条评论
+
+* 拥有超过1,000,000名用户
+
+确认你正在查看正确的扩展程序后，请点击“Add to Chrome”进行安装。
+
+[[using_MetaMask]]
+==== 创建一个钱包
+
+安装MetaMask后，你应该在浏览器的工具栏中看到一个新图标（狐狸头）。点击它开始。你将被要求接受条款和条件，然后通过输入一个密码创建你的新的以太坊钱包（请参阅<<metamask_password>>）。
+
+[[metamask_password]]
+.The password page of the MetaMask Chrome extension
+image::images/metamask_password.png["MetaMask Password Page"]
+
+[TIP]
+====
+密码控制对MetaMask的访问，因此任何有权访问你浏览器的人如果没有密码都无法使用它。
+====
+
+设置密码后，MetaMask将为你生成一个钱包，并显示由12个英语单词组成的助记符备份（请参阅<<metamask_mnemonic>>）。如果MetaMask或你的计算机出现问题，可以在任何兼容的钱包中使用助记词来恢复对你资金的访问。你不需要用密码来恢复;这12个单词组成的助记词就足够了。
+
+[[metamask_mnemonic]]
+.The mnemonic backup of your wallet, created by MetaMask
+image::images/metamask_mnemonic.png["MetaMask Mnemonic Page"]
+
+[TIP]
+====
+在纸上备份你的助记符（12个单词），备份两次。将两张备份的纸存放在两个单独的安全位置，例如防火保险箱，锁好的抽屉或保险箱。将纸质备份视为你在以太坊钱包中存储的等值现金。任何能够访问这些单词的人都可以访问并窃取你的资金。
+====
+
+确认你已安全存储助记词后，你将能够看到以太坊帐户的详细信息，如<<metamask_account>>所示。
+
+[[metamask_account]]
+.Your Ethereum account in MetaMask
+image::images/metamask_account.png["MetaMask Account Page"]
+
+你的帐户页面显示你的帐户名称（默认情况下为“Account 1”），一个以太坊地址（示例中为0x9E713...）以及一个彩色图标，可帮助你直观地将此帐户与其他帐户区分开来。在帐户页面的顶部，你可以看到当前正在哪个以太坊网络上工作（示例中的“Main Network”）。
+
+恭喜！你已经设置好了第一个你的以太坊钱包。
+
+[[switching_networks]]
+==== 切换网络
+
+正如你在MetaMask帐户页面上看到的，您可以在多个以太坊网络之间进行选择。默认情况下，MetaMask将尝试连接到主网络。其他选择是公共测试网络，你选择的任何以太坊节点，或在你自己的计算机上运行私有区块链的节点（localhost）：
+
+Main Ethereum Network:: 主要的公共以太坊区块链。真实的ETH，真正的价值和真实的后果。
+
+Ropsten Test Network:: 以太坊公共测试区块链和网络。该网络上的ETH没有任何价值。
+
+Kovan Test Network:: 以太坊公共测试区块链和网络，使用Aura共识协议和权威证明（联合签名）。该网络上的ETH没有任何价值。 Kovan测试网络仅被Parity支持。其他以太坊客户端使用稍后提出的Clique共识协议来执行基于权威证明的验证。
+
+Rinkeby Test Network:: 以太坊公共测试区块链和网络，使用Clique共识协议和权威证明（联合签名）。该网络上的ETH没有任何价值。
+
+Localhost 8545:: 连接到与浏览器在同一台计算机上运行的一个节点。该节点可以是任何公共区块链（main或testnet）或私有testnet的一部分。
+
+Custom RPC:: 允许你使用Geth兼容的远程过程调用（RPC）接口将MetaMask连接到任何节点。该节点可以是任何公共或私有区块链的一部分。
+
+[NOTE]
+====
+你的MetaMask钱包在其连接的所有网络上使用相同的私钥和以太坊地址。但是，你在每个以太坊网络上的以太坊地址余额将会有所不同。例如，你的密钥可能控制Ropsten上的ether和合约，但不能控制主网上的ether和合约。
+====
+
+[[getting_test_eth]]
+==== 获取一些测试Ether
+
+你的第一个任务是为你的钱包提供资金。你不会在主网上这样做，因为真正的ether需要花钱并且处置它需要更多的经验。现在，你将用一些testnet ether载入你的钱包。
+
+将MetaMask切换到Ropsten测试网络。单击“Buy”，然后单击“Ropsten Test Faucet”。 MetaMask将打开一个新的网页，如<<metamask_ropsten_faucet>>所示。
+
+[[metamask_ropsten_faucet]]
+.MetaMask Ropsten Test Faucet
+image::images/metamask_ropsten_faucet.png["MetaMask Ropsten Test Faucet"]
+
+你可能会注意到该网页已包含你的MetaMask钱包的以太坊地址。 MetaMask把以太坊的网页与你的MetaMask钱包集成在一起，并可以在网页上“看到”以太坊地址，例如，你可以将付款发送到显示以太坊地址的在线商店。如果网页请求，MetaMask还可以使用你自己的钱包地址填充网页作为收件人地址。在此页面中，faucet应用程序正在向MetaMask询问钱包地址以发送测试ether到这个地址。
+
+按绿色“request 1 ether from faucet”按钮。你将在页面的下半部分看到一个交易ID。faucet应用程序已创建一笔交易 - 向你付款。交易ID如下所示：
+
+[[faucet_tx_id]]
+----
+0x7c7ad5aaea6474adccf6f5c5d6abed11b70a350fbc6f9590109e099568090c57
+----
+
+在几秒钟内，这笔新交易将由Ropsten矿工挖矿，你的MetaMask钱包将显示1 ETH的余额。单击交易ID，你的浏览器将带你进入一个区块浏览器，这是一个允许你可视化和浏览区块，地址和交易的网站。 MetaMask使用https://etherscan.io/[Etherscan]区块浏览器，这是一个比较流行的以太坊区块浏览器。含有Ropsten测试Faucet付款的交易显示在<<ropsten_block_explorer>>中。
+
+[[ropsten_block_explorer]]
+.Etherscan Ropsten block explorer
+image::images/ropsten_block_explorer.png["Etherscan Ropsten Block Explorer"]
+
+该交易已记录在Ropsten区块链上，任何人都可以随时查看，只需搜索交易ID或 https://ropsten.etherscan.io/tx/0x7c7ad5aaea6474adccf6f5c5d6abed11b70a350fbc6f9590109e099568090c57[访问链接] 即可。
+
+尝试访问该链接，或将交易哈希输入ropsten.etherscan.io网站，以便亲自查看。
+
+[[sending_eth_MetaMask]]
+==== 从MetaMask发送Ether
+
+一旦你从Ropsten测试Faucet收到你的第一个测试ether，你可以实验尝试将一些ether发送回faucet。正如你在Ropsten测试Faucet页面上看到的那样，可以选择“捐赠”1个ETH到Faucet。此选项可用，这样一旦你完成测试，你可以返回测试ether的剩余部分，以便其他人下次可以使用它。尽管测试ether没有价值，但有些人会囤积它，这使得其他所有人都难以使用测试ether。囤积测试ether不受欢迎！
+
+幸运的是，我们不是测试ether囤积者。单击橙色“1 ether”按钮告诉MetaMask创建支付给faucet 1 ether的交易。 MetaMask将准备一笔交易并弹出一个带有确认的窗口，如<<send_to_faucet>>所示。
+
+[[send_to_faucet]]
+.Sending 1 ether to the faucet
+image::images/send_to_faucet.png["Sending 1 ether to the faucet"]
+
+哎呀！你可能已经注意到你无法完成这笔交易 -  MetaMask说你的余额不足。乍一看，这可能看起来令人困惑：你有1个ETH，你想发送1个ETH，那么为什么MetaMask说你没有足够的资金呢？
+
+答案是因为gas的成本。每笔以太坊交易都需要支付费用，矿工会收取费用以验证交易。以太坊的交易费用以被称为gas的虚拟货币收费。作为交易的一部分，你使用ether支付gas费用。
+
+[NOTE]
+====
+测试网络也需要交易费用。如果没有交易费用，测试网络的行为将与主网络不同，使其成为一个不充分的测试平台。交易费用还保护测试网络免受DoS攻击和构造不良的合同（例如，无限循环），就像它们保护主网络一样。
+====
+
+当你发送交易时，MetaMask计算出最近成功交易的平均gas价格为3 gwei，代表gigawei。正如我们在<<ether_units>>中所讨论的那样，wei是ether的最小细分。gas限额是以发送一笔基本交易的代价设定的，即21,000个gas单位。因此，你将花费的最大ETH量为3 * 21,000 gwei = 63,000 gwei = 0.000063 ETH。 （请注意，平均gas价格可能会波动，因为它们主要由矿工决定。我们将在后面的章节中看到你如何增加/减少gas限制，以确保你的交易在需要时优先。）
+
+所有这些都说：发起一笔1 ETH交易的成本为1.000063 ETH。当显示总数时，MetaMask会混淆地将其降低到1 ETH，但实际需要的数量是1.000063 ETH，并且你只有1个ETH。单击“Reject”以取消此交易。
+
+让我们再获取更多的测试ether！点击绿色“request 1 ether from the faucet”按钮，等待几秒钟。别担心，faucet应该有足够的ether，如果你请求的话会给你更多。
+
+一旦你有2个ETH的余额，你可以再试一次。这次，当你点击橙色的“1 ether”捐赠按钮时，你有足够的余额来完成这笔交易。当MetaMask弹出付款窗口时，单击“Submit”。在完成所有这些之后，你应该看到余额为0.999937 ETH，因为你将1个ETH发送到faucet，并且付了价值0.000063 ETH的gas。
+
+[[explore_tx_history]]
+==== 浏览地址的交易历史
+
+到目前为止，你已成为使用MetaMask发送和接收测试ether的专家。你的钱包已收到至少两笔付款并至少发起了一次交易。你可以使用ropsten.etherscan.io区块浏览器查看所有这些交易。你可以复制你钱包地址并将其粘贴到区块浏览器的搜索框中，也可以让MetaMask为你打开这个页面。在MetaMask中的帐户图标旁边，你会看到一个显示三个点的按钮。单击它以显示一个与帐户相关的选项菜单（请参阅<<metamask_account_context_menu>>）。
+
+[[metamask_account_context_menu]]
+.MetaMask account context menu
+image::images/metamask_account_context_menu.png["MetaMask Account Context Menu"]
+
+选择“View account on Etherscan”以在区块浏览器中打开显示帐户交易历史记录的网页，如<<block_explorer_account_history>>所示。
+
+[[block_explorer_account_history]]
+.Address transaction history on Etherscan
+image::images/block_explorer_account_history.png["Address Transaction History on Etherscan"]
+
+在这里，你可以查看你的以太坊地址的整个交易历史记录。它显示了Ropsten区块链中记录的所有交易，其中你的地址是发件人或收件人。单击其中一些交易以查看更多详细信息。
+
+你可以浏览任何地址的交易历史记录。试着看一下Ropsten测试faucet地址的交易历史记录（提示：它是你的地址最早支付中列出的“发件人”地址）。你可以看到从faucet发送到你和其他地址的所有测试ether。你看到的每笔交易都可以带你了解到更多地址和更多交易。不久之后，你将迷失在互联数据的迷宫中。公共区块链包含大量信息，所有这些信息都可以通过编程方式进行探索，我们将在未来的示例中看到。
+
+[[intro_world_computer]]
+=== 引入世界计算机
+
+你现在已经创建了一个钱包并发送和接收了ether。到目前为止，我们已将以太坊视为一种加密货币。但以太坊代表更多的含义。事实上，加密货币功能服从于以太坊作为去中心化世界计算机的功能。 Ether用于支付运行智能合约的费用，智能合约是在称为以太坊虚拟机（EVM）的模拟计算机上运行的计算机程序。
+
+EVM是一个全局单例，意味着它就像一个全局的单例计算机一样运行，到处运行。以太坊网络上的每个节点都运行一份EVM的本地副本以验证合约执行，而以太坊区块链在处理交易和智能合约时记录此世界计算机的变化状态。我们将在<<evm_chapter>>中更详细地讨论这个问题。
+
+[[EOA_contracts]]
+=== 外部拥有账户（EOA）和合约
+
+你在MetaMask钱包中创建的帐户类型称为外部拥有帐户（EOA）。外部账户是拥有一个私钥的账户;拥有私钥意味着对资金或合约的访问的控制。现在，你可能猜测还有其他类型的帐户。另一种帐户是合约帐户。合约帐户具有智能合约代码，简单的EOA不能拥有。此外，合约帐户没有私钥。相反，它由其智能合约代码的逻辑所拥有（并受其控制）：在合约账户创建时由以太坊区块链记录的软件程序，由EVM执行。
+
+合约具有地址，就像EOA一样。合约也可以发送和接收ether，就像EOA一样。但是，当一笔交易的目标地址是合约地址时，它会导致该合约在EVM中运行，使用交易和交易的数据作为其输入。除了ether之外，交易还可以包含指定合约中要运行的特定函数以及要传递给该函数的参数的数据。通过这种方式，交易可以调用合约中的函数。
+
+请注意，由于合约帐户没有私钥，因此无法发起一笔交易。只有EOA才能发起交易，但合约可以通过调用其他合约，构建复杂的执行路径来对交易作出反应。这种情况的一个典型用途是EOA向一个多重签名智能合约钱包发送一笔请求交易以将一些ETH发送到另一地址。典型的DApp编程模式是让合约A调用合约B，以便在合约A的用户之间保持共享状态。
+
+在接下来的几节中，我们将编写第一个合约。然后，你将学习如何使用MetaMask钱包创建，资助和使用该合约，并在Ropsten测试网络上测试ether。
+
+[[simple_contract_example]]
+=== 一个简单的合约：一个测试ether faucet
+
+以太坊有许多不同的高级语言，所有这些语言都可用于编写合约并生成EVM字节码。你可以在<<high_level_languages>>中阅读许多最杰出和最有趣的内容。到目前为止，一种高级语言是智能合约编程的主要选择：Solidity。 Solidity是由本书的合著者Gavin Wood创建的，并且已经成为以太坊（以及其他）中使用最广泛的语言。我们将使用Solidity编写我们的第一个合约。
+
+对于我们的第一个例子（<<solidity_faucet_example>>），我们将编写一个控制一个faucet的合约。你已经在Ropsten测试网络上使用了一个faucet来获取测试ether。faucet是一个相对简单的东西：它向任何请求的地址发出ether，并且可以被定期重新填充。你可以将faucet实现为由人或网络服务器控制的钱包。
+
+[[solidity_faucet_example]]
+.Faucet.sol: A Solidity contract implementing a faucet
+====
+[source,solidity,linenums]
+----
+include::code/Solidity/Faucet.sol[]
+----
+====
+
+[NOTE]
+====
+你将在 https://github.com/ethereumbook/ethereumbook/[本书的github仓库] 的代码子目录中找到本书的所有代码示例。具体来说，我们的Faucet.sol合约在：
+
+----
+code/Solidity/Faucet.sol
+----
+====
+
+这是一个非常简单的合约，我们尽可能把它写得简单。它也是一个有缺陷的合约，包含一些不良做法和安全漏洞。我们将在后面的章节中通过检查它所有的缺陷来进行学习。但就目前而言，让我们一行一行地看看这份合约的作用及其运作方式。你很快就会注意到Solidity的许多元素与现有的编程语言类似，例如JavaScript，Java或C ++。
+
+第一行是注释：
+
+[[comment]]
+[source,solidity]
+----
+// Our first contract is a faucet!
+----
+
+注释供人阅读，不包含在可执行EVM字节码中。我们通常把注释放在我们试图解释的代码的上一行，或者有时在同一行上。注释以两个正斜杠开头：//。从第一个斜杠到该行结束的所有内容都被视为空行并被忽略。
+
+下一行是我们的实际合约开始的地方：
+
+[[contract_definition]]
+[source,solidity]
+----
+contract Faucet {
+----
+
+该行声明了一个合约对象，类似于其他面向对象语言中的类声明。合约定义包括定义范围的花括号（{}）之间的所有行，就像在许多其他编程语言中使用花括号一样。
+
+接下来，我们声明faucet合约的第一个函数：
+
+[[withdraw_function]]
+[source,solidity]
+----
+function withdraw(uint withdraw_amount) public {
+----
+
+该函数名为withdraw，它接受一个名为withdraw_amount的无符号整数（uint）作为参数。它被声明为一个公共函数，这意味着它可以被其他合约调用。函数定义在花括号之间。withdraw函数的第一部分设置了取款限制：
+
+[[withdraw_limit]]
+[source,solidity]
+----
+require(withdraw_amount <= 100000000000000000);
+----
+
+它使用内置的Solidity函数require来测试一个前提条件，即withdraw_amount小于或等于100,000,000,000,000,000 wei，这是ether的基本单位（见<<ether_denominations>>），相当于0.1 ether。如果使用大于该数量的withdraw_amount调用withdraw函数，则此处的require函数将导致合约执行停止并因异常而失败。请注意，在Solidity中语句需要以分号结束。
+
+合约的这部分是我们faucet的主要逻辑。它通过设置提款限制来控制合约向外的资金流动。这是一个非常简单的控制，但可以让你一瞥可编程区块链的力量：控制资金的去中心化软件。
+
+接下来是实际的取款：
+
+[[withdraw_command]]
+[source,solidity]
+----
+msg.sender.transfer(withdraw_amount);
+----
+
+这里发生了一些有趣的事情。 msg对象是所有合约都可以访问的输入之一。它表示触发此合约执行的交易。属性sender是交易的发起人地址。函数transfer是一个内置函数，它将ether从当前合约转移到发起人的地址。这意味着转移到触发此合约执行的msg的发起人。transfer函数将一个金额作为其唯一参数。我们将传递给之前声明的withdraw函数的参数withdraw_amount的值作为参数传递给transfer函数。
+
+下一行是结束大括号，表示我们的withdraw函数定义的结束。
+
+接下来，我们再声明一个函数：
+
+[[fallback_function]]
+[source,solidity]
+----
+function () public payable {}
+----
+
+此函数是所谓的fallback或default函数，如果触发合约的交易未命名合约中的任何已声明函数或任何函数或未包含数据，则调用此函数。合约可以有一个这样的默认函数（没有名称），它通常是接收ether的函数。这就是为什么它被定义为public和payable函数，这意味着它可以接受ether到该合约。除了接收ether之外，它没有做任何事情，如花括号({})中的空定义所示。如果我们发起一笔将ether发送到合约地址的交易，就好像它是钱包一样，那么这个函数将处理它。
+
+在我们的default函数正下方是最终的结束花括号，它关闭了合约Faucet的定义。就是这样！
