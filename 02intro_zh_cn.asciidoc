@@ -366,7 +366,7 @@ function () public payable {}
 
 Solidity编译器是一个独立的可执行文件，作为各种框架的一部分被提供，并被捆绑在集成开发环境（IDE）中。为了简单起见，我们将使用一种比较流行的IDE，称为Remix。
 
-使用你的Chrome浏览器（之前安装过MetaMask钱包）导航到Remix IDE：https://remix.ethereum.org[]。
+使用你的Chrome浏览器（之前安装过MetaMask钱包）导航到Remix IDE： https://remix.ethereum.org[] 。
 
 当你第一次加载Remix时，它将以一个名为ballot.sol的示例合约开始。我们不需要它，所以关闭它，单击选项卡一角的x，如<<remix_close_tab>>所示。
 
