@@ -363,3 +363,199 @@ function () public payable {}
 === 编译Faucet合约
 
 现在我们有了第一个示例合约，我们需要使用一个Solidity编译器将Solidity代码转换为EVM字节码，以便它可以由区块链本身的EVM执行。
+
+Solidity编译器是一个独立的可执行文件，作为各种框架的一部分被提供，并被捆绑在集成开发环境（IDE）中。为了简单起见，我们将使用一种比较流行的IDE，称为Remix。
+
+使用你的Chrome浏览器（之前安装过MetaMask钱包）导航到Remix IDE：https://remix.ethereum.org[]。
+
+当你第一次加载Remix时，它将以一个名为ballot.sol的示例合约开始。我们不需要它，所以关闭它，单击选项卡一角的x，如<<remix_close_tab>所示。
+
+[[remix_close_tab]]
+.Close the default example tab
+image::images/remix_close_tab.png["Close the default example tab"]
+
+现在，通过单击左上角工具栏中的圆形加号添加新tab，如<<remix_toolbar>>所示。将新文件命名为Faucet.sol。
+
+[[remix_toolbar]]
+.Click the plus sign to open a new tab
+image::images/remix_toolbar.png["Click the plus sign to open a new tab"]
+
+打开新tab后，复制并粘贴示例Faucet.sol中的代码，如<<remix_faucet_load>>所示。
+
+[[remix_faucet_load]]
+.Copy the Faucet example code into the new tab
+image::images/remix_faucet_load.png["Copy the Faucet example code into the new tab"]
+
+将Faucet.sol合约加载到Remix IDE后，IDE将自动编译代码。如果一切顺利，你会在右侧的Compile tab下看到一个带有“Faucet”的绿色框，确认编译成功（请参阅<<remix_compile>>）。
+
+[[remix_compile]]
+.Remix successfully compiles the Faucet.sol contract
+image::images/remix_compile.png[""]
+
+如果出现问题，最可能的问题是Remix IDE使用的是与0.4.19不同的Solidity编译器版本。在这种情况下，我们的pragma指令将阻止Faucet.sol编译。要更改编译器版本，请转到“Settings” tab，将版本设置为0.4.19，然后重试。
+
+Solidity编译器现在已将Faucet.sol编译为EVM字节码。如果你很好奇，字节码看起来像这样：
+
+[[faucet_bytecode]]
+----
+PUSH1 0x60 PUSH1 0x40 MSTORE CALLVALUE ISZERO PUSH2 0xF JUMPI PUSH1 0x0 DUP1
+REVERT JUMPDEST PUSH1 0xE5 DUP1 PUSH2 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN
+STOP PUSH1 0x60 PUSH1 0x40 MSTORE PUSH1 0x4 CALLDATASIZE LT PUSH1 0x3F JUMPI
+PUSH1 0x0 CALLDATALOAD PUSH29
+0x100000000000000000000000000000000000000000000000000000000
+SWAP1 DIV PUSH4 0xFFFFFFFF AND DUP1 PUSH4 0x2E1A7D4D EQ PUSH1 0x41 JUMPI
+JUMPDEST STOP JUMPDEST CALLVALUE ISZERO PUSH1 0x4B JUMPI PUSH1 0x0 DUP1 REVERT
+JUMPDEST PUSH1 0x5F PUSH1 0x4 DUP1 DUP1 CALLDATALOAD SWAP1 PUSH1 0x20 ADD SWAP1
+SWAP2 SWAP1 POP POP PUSH1 0x61 JUMP JUMPDEST STOP JUMPDEST PUSH8
+0x16345785D8A0000 DUP2 GT ISZERO ISZERO ISZERO PUSH1 0x77 JUMPI PUSH1 0x0 DUP1
+REVERT JUMPDEST CALLER PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF AND
+PUSH2 0x8FC DUP3 SWAP1 DUP2 ISZERO MUL SWAP1 PUSH1 0x40 MLOAD PUSH1 0x0 PUSH1
+0x40 MLOAD DUP1 DUP4 SUB DUP2 DUP6 DUP9 DUP9 CALL SWAP4 POP POP POP POP ISZERO
+ISZERO PUSH1 0xB6 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP JUMP STOP LOG1 PUSH6
+0x627A7A723058 KECCAK256 PUSH9 0x13D1EA839A4438EF75 GASLIMIT CALLVALUE LOG4 0x5f
+PUSH24 0x7541F409787592C988A079407FB28B4AD000290000000000
+----
+
+你是否很高兴使用Solidity等高级语言而不是直接在EVM字节码中编程？我也是！
+
+[[create_contract]]
+=== 在区块链上创建这个合约
+
+所以，我们有一个合约了。我们已经把它编译成了字节码。现在，我们需要在以太坊区块链上“注册”这个合约。我们将使用Ropsten测试网来测试我们的合约，我们将把合约提交到Ropsten测试网区块链。
+
+在区块链上注册一个合约涉及创建一个特殊交易，其目标是地址0x00000000000000000000000000000000000000000000，也称为零地址。零地址是一个特殊地址，告诉以太坊区块链你想要注册一个合约。幸运的是，Remix IDE将为你处理所有这些并将交易发送到MetaMask。
+
+首先，切换到“Run” tab，然后在“Environment”下拉选择框中选择“Injected Web3”。这将Remix IDE连接到MetaMask钱包，并通过MetaMask连接到Ropsten测试网络。一旦你这样做，你可以在Environment下看到Ropsten。此外，在“Account ”选择框中，它显示你的钱包地址（请参阅<<remix_run>>）。
+
+[[remix_run]]
+.Remix IDE Run tab, with Injected Web3 environment selected
+image::images/remix_run.png["Remix IDE Run tab, with Injected Web3 environment selected"]
+
+刚刚确认的Run设置正下方是Faucet合同，准备创建。单击<<remix_run>>中的Deploy按钮。
+
+Remix将构建特殊的“创建”交易，MetaMask将要求你批准它，如<<remix_metamask_create>>所示。你会注意到合约创建交易中没有ether，但它有258字节的数据（已编译的合约）并且将消耗10 gwei的gas。单击“SUBMIT”以批准它。
+
+[[remix_metamask_create]]
+.MetaMask showing the contract creation transaction
+image::images/remix_metamask_create.png["MetaMask showing the contract creation transaction"]
+
+现在你必须等待。合约在Ropsten上被挖矿需要15到30秒。Remix似乎不会做太多，但请耐心等待。
+
+创建合约后，它将显示在“Run” tab的底部（请参阅<<remix_contract_interact>>）。
+
+[[remix_contract_interact]]
+.The Faucet contract is ALIVE!
+image::images/remix_contract_interact.png["The Faucet contract is ALIVE!"]
+
+请注意，Faucet合约现在有一个自己的地址：Remix将其显示为“Faucet at 0x72e…​c7829”（尽管你的地址（随机字母和数字）会有所不同）。右侧的小剪贴板符号允许你将合约地址复制到剪贴板。我们将在下一节中使用它。
+
+[[interact_contract]]
+=== 与合约互动
+
+让我们回顾一下迄今为止我们学到的东西：以太坊合约是控制资金的程序，它们在称为EVM的虚拟机内运行。它们由一笔特殊交易创建，该交易提交其字节码以记录在区块链上。一旦它们在区块链上被创建，它们就有了一个以太坊地址，就像钱包一样。只要有人将某个交易发送到合约地址，就会导致合约在EVM中运行，并将该交易作为其输入。发送到合约地址的交易可能拥有ether或数据或两者兼有。如果它们含有ether，则将其“存入”合约余额。如果它们包含数据，则数据可以指定合约中的一个命名函数并调用它，并将参数传递给函数。
+
+[[view_contract_address]]
+==== 在一个区块浏览器中查看合约地址
+
+我们现在在区块链上记录了一个合约，我们可以看到它有一个以太坊地址。让我们在ropsten.etherscan.io区块浏览器中查看它，看看合约是什么样的。在Remix IDE中，通过单击其名称旁边的剪贴板图标来复制合约的地址（请参阅<<remix_contract_address>>）。
+
+[[remix_contract_address]]
+.Copy the contract address from Remix
+image::images/remix_contract_address.png["Copy the contract address from Remix"]
+
+不要关闭Remix;我们稍后会再回来。现在，将浏览器导航到ropsten.etherscan.io并将合约地址粘贴到搜索框中。你应该看到合约的以太坊地址的历史记录，如<<etherscan_contract_address>>所示。
+
+[[etherscan_contract_address]]
+.View the Faucet contract address in the Etherscan block explorer
+image::images/etherscan_contract_address.png["View the Faucet contract address in the etherscan block explorer"]
+
+[[fund_contract]]
+==== 为合约提供资金
+
+目前，合约在其历史记录中只有一个交易：合约创建交易。如您所见，合约也没有ether（零余额）。那是因为我们没有在创建交易中向合约发送任何ether，即使我们可以。
+
+我们的Faucet合约需要资金！我们的第一个项目是使用MetaMask将ether发送到合约中。你应该仍然在剪贴板中有合约的地址（如果没有，请从Remix再次复制）。打开MetaMask，并向合约发送1个ether，就像你对任何其他以太坊地址一样（请参阅<<metamask_send_to_contract>>）。
+
+[[metamask_send_to_contract]]
+.Send 1 ether to the contract address
+image::images/metamask_send_to_contract.png[""]
+
+在一分钟内，如果你重新加载Etherscan区块浏览器，它将显示合约地址的另一笔交易以及1个ether的更新余额。
+
+还记得我们的Faucet.sol代码中未命名的default public payable函数吗？它看起来像这样：
+
+[[fallback_function_review]]
+[source,solidity]
+----
+function () public payable {}
+----
+
+当你将交易发送到合约地址时，没有数据指定要调用的函数，它会调用此default函数。因为我们声明它为payable，所以它接受并将1 ether存入合约的账户余额。你的交易导致合约在EVM中运行，更新其余额。你资助了你的faucet！
+
+[[withdraw_from_contract]]
+==== 从我们的合约取款
+
+接下来，让我们从faucet中提取一些资金。要取款，我们必须构造一个调用withdraw函数的交易，并将一个withdraw_amount参数传递给它。为了使事情变得简单，Remix将为我们构建该交易，MetaMask将呈现它并让我们批准。
+
+返回Remix tab并查看Run tab上的合约。你应该看到一个标有“withdraw”的红色框，标有uint256 withdraw_amount的字段条目（参见<<remix_contract_withdraw>>）。
+
+[[remix_contract_withdraw]]
+.The withdraw function of Faucet.sol, in Remix
+image::images/remix_contract_interact.png["The withdraw function of Faucet.sol, in Remix"]
+
+这是合约的Remix接口。它允许我们构造调用合约中定义的函数的交易。我们将输入一个withdraw_amount并单击“withdraw”按钮以生成交易。
+
+首先，让我们把withdraw_amount搞清楚。我们想尝试提取0.1 ether，这是我们合约允许的最大金额。请记住，以太坊中的所有货币值都在内部以wei表示，而我们的withdraw函数也期望withdraw_amount也以wei计价。我们想要的数量是0.1 ether，即100,000,000,000,000,000 wei（1后跟17个零）。
+
+[TIP]
+====
+由于JavaScript的限制，Remix无法处理大到10^17的数字。相反，我们将它括在双引号中，以允许Remix将其作为一个字符串接收并将其作为一个BigNumber进行操作。如果我们不将它括在引号中，则Remix IDE将无法处理它并显示“Error encoding arguments: Error: Assertion failed.”。
+====
+
+在withdraw_amount框中输入“100000000000000000”（带引号），然后单击“withdraw”按钮（请参阅<<remix_withdraw>>）。
+
+[[remix_withdraw]]
+.Click "withdraw" in Remix to create a withdrawal transaction
+image::images/remix_withdraw.png[""]
+
+MetaMask将弹出一个交易窗口让你批准。单击“ Submit”将你的withdraw调用发送到合约（请参阅<<metamask_withdraw>>）。
+
+[[metamask_withdraw]]
+.MetaMask transaction to call the withdraw function
+image::images/metamask_withdraw.png["MetaMask transaction to call the withdraw function"]
+
+等一会儿，然后重新加载Etherscan区块浏览器以查看反映在Faucet合约地址历史记录中的交易（请参阅<<etherscan_withdrawal_tx>>）。
+
+[[etherscan_withdrawal_tx]]
+.Etherscan shows the transaction calling the withdraw function
+image::images/etherscan_withdrawal_tx.png["Etherscan shows the transaction calling the withdraw function"]
+
+
+我们现在看到一笔新的交易，其中合约地址作为目标，值为0 ether。合约余额已经改变，现在是0.9 ether，因为它按要求向我们发送了0.1 ether。但我们在合约地址历史记录中看不到一笔“OUT”交易。
+
+从合约发出的向外（outgoing）的取款交易在哪里呢？合约地址的历史记录页面上出现了一个新tab，名为“Internal Transactions”。因为0.1 ether传输源自合约代码，所以它是内部交易（也称为消息）。单击该tab以查看它（请参阅<<etherscan_withdrawal_internal>>）。
+
+[[etherscan_withdrawal_internal]]
+.Etherscan shows the internal transaction transferring ether out from the contract
+image::images/etherscan_withdrawal_internal.png["Etherscan shows the internal transaction transferring ether out from the contract"]
+
+这个“内部交易（internal transaction）”是由合约在这行代码中发出的（来自Faucet.sol中的withdraw函数）：
+
+[[withdraw_command_review]]
+[source,solidity]
+----
+msg.sender.transfer(withdraw_amount);
+----
+
+回顾一下：你从MetaMask钱包中发起了一笔包含数据指令的交易，以使用withdraw_amount参数0.1 ether调用withdraw函数。该交易导致合约在EVM内部运行。当EVM运行Faucet合约的withdraw函数时，首先它调用require函数并验证所请求的金额小于或等于允许的最大取款额0.1 ether。然后它调用transfer函数向你发送ether。运行transfer函数会产生一笔内部交易，从合约的余额中将0.1 ether存入你的钱包地址。这就是在Etherscan的Internal Transactions tab上显示的那笔。
+
+[[intro_conclusion]]
+=== 总结
+
+在本章中，你使用了MetaMask创建并设置一个钱包，并使用Ropsten测试网络上的faucet为其提供资金。你在钱包的以太坊地址收到了ether，然后我们把ether发送到了faucet的以太坊地址。
+
+接下来，我们在Solidity写了一个Faucet合约。你使用Remix IDE将合约编译为EVM字节码，然后使用Remix形成一笔交易并在Ropsten区块链上创建Faucet合约。一旦创建，Faucet合约就有一个以太坊地址，你发送了一些ether到这个地址。最后，你构建了一笔交易来调用withdraw函数并成功请求0.1 ether。合约检查了请求，并通过内部交易向你发送了0.1 ether。
+
+它可能看起来不多，但你刚刚成功地与在去中心化的世界计算机上控制资金的软件进行了交互。
+
+我们将在<<smart_contracts_chapter>>中进行更多智能合约编程，并在<<smart_contract_security>>中了解最佳实践和安全注意事项。
