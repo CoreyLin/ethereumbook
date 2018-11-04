@@ -1,45 +1,45 @@
 [[wallets_chapter]]
-== Wallets
+== 钱包
 
-((("wallets", "defined")))The word "wallet" is used to describe a few different things in Ethereum.
+“钱包”这个词用来描述以太坊中的一些不同的东西。
 
-At a high level, a wallet is a software application that serves as the primary user interface to Ethereum. The wallet controls access to a user's money, managing keys and addresses, tracking the balance, and creating and signing transactions. In addition, some Ethereum wallets can also interact with contracts, such as ERC20 tokens.
+在较高级别，钱包是一个软件应用程序，作为以太坊的主要用户界面。钱包控制对用户资金的访问，管理密钥和地址，跟踪余额以及创建和签署交易。此外，一些以太坊钱包也可以与合约互动，例如ERC20通证。
 
-More narrowly, from a programmer's perspective, the word _wallet_ refers to the system used to store and manage a user's keys. Every wallet has a key-management component. For some wallets, that's all there is. Other wallets are part of a much broader category, that of _browsers_, which are interfaces to Ethereum-based decentralized applications, or _DApps_, which we will examine in more detail in <<decentralized_applications_chap>>. There are no clear lines of distinction between the various categories that are conflated under the term wallet.
+从狭义的层面讲，从程序员的角度来看，钱包这个词指的是用于存储和管理用户密钥的系统。每个钱包都有一个密钥管理组件。对于一些钱包，这就是全部。其他钱包是更广泛范畴的一部分，浏览器的范畴，它们是基于以太坊的去中心化应用程序或DApps的接口，我们将在<<decentralized_applications_chap>>中更详细地研究它们。在钱包一词下混淆的各种类别之间没有明确的区别。
 
-In this chapter we will look at wallets as containers for private keys, and as systems for managing these keys.
+在本章中，我们将把钱包看作私钥的容器，以及管理这些密钥的系统。
 
 [[wallet_tech_overview]]
-=== Wallet Technology Overview
+=== 钱包技术概述
 
-In this section we summarize the various technologies used to construct user-friendly, secure, and flexible Ethereum wallets.
+在本节中，我们总结了用于构建用户友好，安全且灵活的以太坊钱包的各种技术。
 
-One key consideration in designing wallets is balancing convenience and privacy. The most convenient Ethereum wallet is one with a single private key and address that you reuse for everything. Unfortunately, such a solution is a privacy nightmare, as anyone can easily track and correlate all your transactions. Using a new key for every transaction is best for privacy, but becomes very difficult to manage. The correct balance is difficult to achieve, but that's why good wallet design is paramount.
+设计钱包的一个关键考虑因素是平衡便利性和隐私性。最方便的以太坊钱包是一个带有一个私钥和地址的钱包，可以重复使用。不幸的是，这样的解决方案是隐私噩梦，因为任何人都可以轻松跟踪和关联你的所有交易。为每笔交易使用一个新密钥对隐私最有利，但变得非常难以管理。正确的平衡很难实现，但这就是为什么优质钱包设计至关重要。
 
-((("wallets", "contents of")))A common misconception about Ethereum is that Ethereum wallets contain ether or tokens. In fact, very strictly speaking, the wallet holds only keys. The ether or other tokens are recorded on the Ethereum blockchain. Users control the tokens on the network by signing transactions with the keys in their wallets. ((("keychains")))In a sense, an Ethereum wallet is a _keychain_. Having said that, given that the keys held by the wallet are the only things that are needed to transfer ether or tokens to others, in practice this distinction is fairly irrelevant. Where the difference does matter is in changing one's mindset from dealing with the centralized system of conventional banking (where only you, and the bank, can see the money in your account, and you only need convince the bank that you want to move funds to make a transaction) to the decentralized system of blockchain platforms (where everyone can see the ether balance of an account, although they probably don't know the account's owner, and everyone needs to be convinced the owner wants to move funds for a transaction to be enacted). In practice this means that there is an independent way to check an account's balance, without needing its wallet. Moreover, you can move your account handling from your current wallet to a different wallet, if you grow to dislike the wallet app you started out using.
+关于以太坊的一个常见误解是，以太坊钱包包含ether或通证。事实上，非常严格地说，钱包只持有密钥。ether或其他通证被记录在以太坊区块链上。用户通过在钱包中使用密钥对交易进行签名来控制网络上的通证。从某种意义上说，一个以太坊钱包是一个密钥链。话虽如此，鉴于钱包持有的密钥是将ether或通证转让给他人所需的唯一东西，实际上这种区别是相当无关紧要的。重要的区别在于改变一个人的心态，从处理传统银行业务的中心化系统（只有你和银行可以看到你账户中的资金，而你只需说服银行你要将资金转移来创建一笔交易）到去中心化区块链平台系统（每个人都可以看到一个账户的ether余额，尽管他们可能不知道账户的所有者，并且每个人都需要确信账户所有者想为要实施的交易转移资金）。在实践中，这意味着有一种独立的方式来检查一个帐户的余额，而不需要该账户的钱包。此外，如果你不喜欢你一开始使用的钱包应用，你可以将你的帐户处理从当前钱包转移到另一个不同的钱包。
 
 [NOTE]
 ====
-Ethereum wallets contain keys, not ether or tokens. Wallets are like keychains containing pairs of private and public keys. Users sign transactions with the private keys, thereby proving they own the ether. The ether is stored on the blockchain.
+以太坊钱包包含密钥，而不是ether或通证。钱包就像包含私钥和公钥对的密钥链。用户使用私钥对交易进行签名，从而证明他们拥有ether。ether存储在区块链中。
 ====
 
-((("wallets", "types of", "primary distinctions")))There are two primary types of wallets, distinguished by whether the keys they contain are related to each other or not.
+有两种主要类型的钱包，区别在于它们包含的密钥是否相互关联。
 
-((("JBOK wallets", seealso="wallets")))((("wallets", "types of", "JBOK wallets")))((("nondeterministic wallets", seealso="wallets")))The first type is a _nondeterministic wallet_, where each key is independently generated from a different random number. The keys are not related to each other. This type of wallet is also known as a JBOK wallet, from the phrase "Just a Bunch of Keys.&#x201d;
+第一种类型是非确定性钱包，其中每个密钥是从不同的随机数独立生成的。密钥彼此无关。这种类型的钱包也被称为JBOK钱包，来自短语“Just a Bunch of Keys”（只是一串密钥）。
 
-((("deterministic wallets", seealso="wallets")))The second type of wallet is a _deterministic wallet_, where all the keys are derived from a single master key, known as the _seed_. All the keys in this type of wallet are related to each other and can be generated again if one has the original seed. ((("key derivation methods")))There are a number of different _key derivation_ methods used in deterministic wallets. ((("hierarchical deterministic (HD) wallets", seealso="wallets")))The most commonly used derivation method uses a tree-like structure, as described in <<hd_wallets>>.
+第二种类型的钱包是确定性钱包，其中所有密钥都来源于一个主密钥，称为种子。这种类型的钱包中的所有密钥彼此相关，并且如果具有原始种子，则可以被再次生成。确定性钱包中使用了许多不同的密钥派生方法。最常用的派生方法使用树状结构，如<<hd_wallets>>中所述。
 
-((("mnemonic code words")))To make deterministic wallets slightly more secure against data-loss accidents, such as having your phone stolen or dropping it in the toilet, the seeds are often encoded as a list of words (in English or another language) for you to write down and use in the event of an accident. These are known as the wallet's _mnemonic code words_. Of course, if someone gets hold of your mnemonic code words, then they can also recreate your wallet and thus gain access to your ether and smart contracts. As such, be very, very careful with your recovery word list! Never store it electronically, in a file, on your computer or phone. Write it down on paper and store it in a safe and secure place.
+为了使确定性钱包更安全，防止数据丢失事故，例如手机被盗或丢弃在厕所中，种子通常被编码为单词列表（英语或其他语言）供你记下并使用在发生事故时。这些被称为钱包的助记词。当然，如果有人掌握了你的助记词，那么他们也可以重新创建你的钱包，从而获得你的ether和智能合约的访问权限。因此，对你的恢复单词列表（助记词）非常非常小心！切勿将其以电子方式存储在文件中，计算机或手机上。将其写在纸上并存放在安全可靠的地方。
 
-The next few sections introduce each of these technologies at a high level.
+接下来的几节将从较高视角介绍这些技术。
 
 
 [[random_wallet]]
-==== Nondeterministic (Random) Wallets
+==== 非确定性（随机）钱包
 
-((("wallets", "types of", "nondeterministic (random) wallets")))In the first Ethereum wallet (produced for the Ethereum pre-sale), each wallet file stored a single randomly generated private key. Such wallets are being replaced with deterministic wallets because these "old-style" wallets are in many ways inferior. For example, it is considered good practice to avoid Ethereum address reuse as part of maximizing your privacy while using Ethereum&#x2014;i.e., to use a new address (which needs a new private key) every time you receive funds. You can go further and use a new address for each transaction, although this can get expensive if you deal a lot with tokens. To follow this practice, a nondeterministic wallet will need to regularly increase its list of keys, which means you will need to make regular backups. If you ever lose your data (disk failure, drink accident, phone stolen) before you've managed to back up your wallet, you will lose access to your funds and smart contracts. The "type 0" nondeterministic wallets are the hardest to deal with, because they create a new wallet file for every new address in a "just in time" manner.
+在第一个以太坊钱包（为以太坊预售而产生）中，每个钱包文件存储了一个随机生成的私钥。这种钱包正在被确定性的钱包所取代，因为这些“旧式”钱包在许多方面都很差。例如，防止以太坊地址重用作为使用以太坊时最大化隐私的一部分被认为是一种最佳实践，即每次接收资金时使用一个新地址（需要一个新的私钥）。你可以更进一步，为每笔交易使用一个新地址，但如果你使用通证进行大量处理，这可能会变得昂贵。要遵循这种实践，非确定性钱包需要定期增加其密钥列表，这意味着你需要定期备份。如果你在设法备份钱包之前丢失了数据（磁盘故障，饮酒事故，电话被盗），你将无法访问资金和智能合约。 “0型”非确定性钱包是最难处理的，因为它们以“及时”的方式为每个新地址创建一个新的钱包文件。
 
-Nevertheless, many Ethereum clients (including +geth+) use a _keystore_ file, which is a JSON-encoded file that contains a single (randomly generated) private key, encrypted by a passphrase for extra security. The JSON file's contents look like this:
+然而，许多以太坊客户端（包括geth）使用keystore文件，这是一个JSON编码的文件，包含一个（随机生成的）私钥，用密码加密以提高安全性。JSON文件的内容如下所示：
 
 [[keystore_example]]
 [source,json]
@@ -69,118 +69,117 @@ Nevertheless, many Ethereum clients (including +geth+) use a _keystore_ file, wh
 }
 ----
 
-The keystore format uses a _key derivation function_ (KDF), also known as a password stretching algorithm, which protects against brute-force, dictionary, and rainbow table attacks. In simple terms, the private key is not encrypted by the passphrase directly. Instead, the passphrase is _stretched_, by repeatedly hashing it. The hashing function is repeated for 262,144 rounds, which can be seen in the keystore JSON as the parameter +crypto.kdfparams.n+. An attacker trying to brute-force the passphrase would have to apply 262,144 rounds of hashing for every attempted passphrase, which slows down the attack sufficiently to make it infeasible for passphrases of sufficient complexity and length.
+keystore格式使用密钥派生函数（KDF），也称为密码拉伸算法，可防止暴力，字典和彩虹表攻击。简单来说，私钥不直接通过密码加密。相反，通过反复对密码进行哈希来拉伸密码。哈希函数重复262,144轮，可以在keystore JSON中看作参数crypto.kdfparams.n。试图暴力破解密码的攻击者必须对每个尝试过的密码应用262,144轮哈希，这充分减缓了攻击，使其对于足够复杂和长度的密码不可行。
 
-There are a number of software libraries that can read and write the keystore format, such as the JavaScript library https://github.com/ethereumjs/keythereum[+keythereum+].
+有许多软件库可以读写keystore格式，例如JavaScript的库 https://github.com/ethereumjs/keythereum[+keythereum+] 。
 
 [TIP]
 ====
-The use of nondeterministic wallets is discouraged for anything other than simple tests. They are too cumbersome to back up and use for anything but the most basic of situations. Instead, use an industry-standard&#x2013;based HD wallet with a mnemonic seed for backup.
+除了简单测试之外，不鼓励使用不确定性钱包。除了最基本的情况之外，它们太难以备份和使用。相反，使用带有助记种子的基于行业标准的HD钱包进行备份。
 ====
 
 [[deterministic_wallets]]
-==== Deterministic (Seeded) Wallets
+==== 确定性（种子）钱包
 
-((("wallets", "types of", "deterministic (seeded) wallets")))Deterministic or "seeded" wallets are wallets that contain private keys that are all derived from a single master key, or seed. The seed is a randomly generated number that is combined with other data, such as an index number or "chain code" (see <<extended_keys>>), to derive any number of private keys. In a deterministic wallet, the seed is sufficient to recover all the derived keys, and therefore a single backup, at creation time, is sufficient to secure all the funds and smart contracts in the wallet. The seed is also sufficient for a wallet export or import, allowing for easy migration of all the keys between different wallet implementations.
+确定性或“种子”钱包是包含私钥的钱包，所有私钥都来自单个主密钥或种子。种子是随机生成的数字，与其他数据组合，例如索引号或“链码”（请参阅<<extended_keys>>），以派生任意数量的私钥。在确定性钱包中，种子足以恢复所有派生的密钥，因此在创建时单个备份足以保护钱包中的所有资金和智能合约。种子也足以用于钱包导出或导入，允许在不同钱包实现之间轻松迁移所有密钥。
 
-This design makes the security of the seed of utmost importance, as only the seed is needed to gain access to the entire wallet. On the other hand, being able to focus security efforts on a single piece of data can be seen as an advantage.
+这种设计使种子的安全性变得至关重要，因为只需要种子就可以访问整个钱包。另一方面，能够将安全性工作集中在单个数据上可以被视为一个优势。
 
 [[hd_wallets]]
-==== Hierarchical Deterministic Wallets (BIP-32/BIP-44)
+==== 分层确定性钱包（BIP-32 / BIP-44）
 
-((("wallets", "types of", "hierarchical deterministic (HD) wallets")))((("hierarchical deterministic (HD) wallets")))((("Bitcoin improvement proposals", "Hierarchical Deterministic Wallets (BIP-32/BIP-44)")))Deterministic wallets were developed to make it easy to derive many keys from a single seed. Currently, the most advanced form of deterministic wallet is the _hierarchical deterministic_ (HD) wallet defined by Bitcoin's https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki[_BIP-32 standard_]. HD wallets contain keys derived in a tree structure, such that a parent key can derive a sequence of child keys, each of which can derive a sequence of grandchild keys, and so on. This tree structure is illustrated in <<hd_wallets_figure>>.
+确定性钱包被开发以便于从单个种子中派生出许多密钥。目前，最先进的确定性钱包形式是由比特币的 https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki[_BIP-32 standard_] 定义的分层确定性（HD）钱包。 HD钱包包含在树结构中派生出的密钥，使得父密钥可以导出一系列子密钥，每个子密钥可以导出一系列孙密钥，等等。这种树结构在<<hd_wallets_figure>>中进行了阐述。
 
 [[hd_wallets_figure]]
 .HD wallet: a tree of keys generated from a single seed
 image::images/hd_wallet.png["HD wallet"]
 
-HD wallets offer a few key advantages over simpler deterministic wallets. First, the tree structure can be used to express additional organizational meaning, such as when a specific branch of subkeys is used to receive incoming payments and a different branch is used to receive change from outgoing payments. Branches of keys can also be used in corporate settings, allocating different branches to departments, subsidiaries, specific functions, or accounting categories.
+HD钱包比简单的确定性钱包提供了一些关键优势。首先，树结构可用于表达额外的组织含义，例如子密钥的特定分支用于接收传入支付，并且使用不同分支来接收来自传出支付的更改。密钥分支也可以在公司设置中使用，将不同的分支分配给部门，子公司，特定功能或会计类别。
 
-The second advantage of HD wallets is that users can create a sequence of public keys without having access to the corresponding private keys. This allows HD wallets to be used on an insecure server or in a watch-only or receive-only capacity, where the wallet doesn't have the private keys that can spend the funds.
+HD钱包的第二个优势是用户可以创建一系列公钥而无需访问相应的私钥。这允许HD钱包在不安全的服务器上使用，或者在仅观察或仅接收的容量中使用，其中钱包没有可以花费资金的私钥。
 
 [[mnemonic_codes]]
-==== Seeds and Mnemonic Codes (BIP-39)
+==== 种子和助记符代码（BIP-39）
 
-((("wallets", "technology of", "seeds and mnemonic codes")))((("mnemonic code words")))((("Bitcoin improvement proposals", "Mnemonic Code Words (BIP-39)")))There are many ways to encode a private key for secure backup and retrieval. The currently preferred method is using a sequence of words that, when taken together in the correct order, can uniquely recreate the private key. This is sometimes known as a _mnemonic_, and the approach has been standardized by https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki[BIP-39]. Today, many Ethereum wallets (as well as wallets for other cryptocurrencies) use this standard, and can import and export seeds for backup and recovery using interoperable mnemonics.
+有许多方法可以对私钥进行编码以进行安全备份和检索。当前优选的方法是使用一系列单词，当以正确的顺序组合在一起时，可以唯一地重新创建私钥。这有时被称为助记词，并且该方法已由 https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki[BIP-39] 标准化。如今，许多以太坊钱包（以及其他加密货币的钱包）都使用此标准，并且可以使用可互操作的助记词导入和导出种子以进行备份和恢复。
 
-To see why this approach has become popular, let's have a look at an example:
+要了解为什么这种方法变得流行，让我们来看一个例子：
 
 [[hex_seed_example]]
-.A seed for a deterministic wallet, in hex
+.确定性钱包的一个种子，十六进制
 ----
 FCCF1AB3329FD5DA3DA9577511F8F137
 ----
 
 [[mnemonic_seed_example]]
-.A seed for a deterministic wallet, from a 12-word mnemonic
+.确定性钱包的一个种子，来自12个单词的助记词
 ----
 wolf juice proud gown wool unfair
 wall cliff insect more detail hub
 ----
 
-In practical terms, the chance of an error when writing down the hex sequence is unacceptably high. In contrast, the list of known words is quite easy to deal with, mainly because there is a high level of redundancy in the writing of words (especially English words). If "inzect" had been recorded by accident, it could quickly be determined, upon the need for wallet recovery, that "inzect" is not a valid English word and that "insect" should be used instead. We are talking about writing down a representation of the seed because that is good practice when managing HD wallets: the seed is needed to recover a wallet in the case of data loss (whether through accident or theft, so keeping a backup is very prudent. However, the seed must be kept extremely private, so digital backups should be carefully avoided; hence the earlier advice to back up with pen and paper.
+实际上，写下十六进制序列时出错的可能性高得令人无法接受。相比之下，已知单词列表很容易处理，主要是因为单词（尤其是英语单词）的写作存在高度冗余。如果意外记录了“inzect”，则可以在需要钱包恢复时迅速确定“inzect”不是有效的英文单词，而应该使用“insect”代替。我们正在谈论写下种子的一种表示，因为这是管理HD钱包时的好习惯：在数据丢失的情况下（无论是通过事故还是盗窃）需要种子来恢复钱包，因此保持备份是非常谨慎的。但是，种子必须保持非常私密，因此应该小心避免数字备份;因此早期建议使用笔和纸进行备份。
 
-In summary, the use of a recovery word list to encode the seed for an HD wallet makes for the easiest way to safely export, transcribe, record on paper, read without error, and import a private key set into another wallet.
+总之，使用恢复单词列表对HD钱包的种子进行编码是最简单的方法，可以安全地导出，转录，记录在纸上，无错误地读取，并将私钥集导入另一个钱包。
 
 
 [[wallet_best_practices]]
-=== Wallet Best Practices
+=== 钱包的最佳实践
 
-((("wallets", "best practices for")))((("Bitcoin improvement proposals", "Multipurpose HD Wallet Structure (BIP-43)")))As cryptocurrency wallet technology has matured, certain common industry standards have emerged that make wallets broadly interoperable, easy to use, secure, and flexible. These standards also allow wallets to derive keys for multiple different cryptocurrencies, all from a single mnemonic. These common standards are:
+随着加密货币钱包技术的成熟，出现了一些通用的行业标准，使得钱包具有广泛的互操作性，易于使用，安全和灵活。这些标准还允许钱包为多种不同的加密货币派生密钥，所有这些都来自一个助记词。这些共同标准是：
 
-* Mnemonic code words, based on BIP-39
-* HD wallets, based on BIP-32
-* Multipurpose HD wallet structure, based on BIP-43
-* Multicurrency and multiaccount wallets, based on BIP-44
+* 助记码词，基于BIP-39
+* HD钱包，基于BIP-32
+* 多用途HD钱包结构，基于BIP-43
+* 多币种和多帐户钱包，基于BIP-44
+这些标准可能会因未来的发展而改变或被淘汰，但目前它们形成了一系列联锁技术，这些技术已成为大多数区块链平台及其加密货币的事实上的钱包标准。
 
-These standards may change or be obsoleted by future developments, but for now they form a set of interlocking technologies that have become the _de facto_ wallet standard for most blockchain platforms and their cryptocurrencies.
+这些标准已被广泛的软件和硬件钱包所采用，使所有这些钱包都可以互操作。用户可以导出在其中一种钱包中生成的助记词，并将其导入另一种钱包，恢复所有密钥和地址。
 
-The standards have been adopted by a broad range of software and hardware wallets, making all these wallets interoperable. A user can export a mnemonic generated in one of these wallets and import it to another wallet, recovering all keys and addresses.
+支持这些标准的软件钱包的一些示例包括（按字母顺序列出）Jaxx，MetaMask，MyCrypto和MyEtherWallet（MEW）。支持这些标准的硬件钱包示例包括Keepkey，Ledger和Trezor。
 
-Some examples of software wallets supporting these standards include (listed alphabetically) Jaxx, MetaMask, MyCrypto, and MyEtherWallet (MEW). ((("hardware wallets")))((("hardware wallets", see="also wallets")))Examples of hardware wallets supporting these standards include Keepkey, Ledger, and Trezor.
-
-The following sections examine each of these technologies in detail.
+以下部分详细介绍这些技术。
 
 [TIP]
 ====
-If you are implementing an Ethereum wallet, it should be built as an HD wallet, with a seed encoded as a mnemonic code for backup, following the BIP-32, BIP-39, BIP-43, and BIP-44 standards, as described in the following sections.
+如果你正在实现以太坊钱包，它应该构建为HD钱包，种子编码为备用助记词，遵循BIP-32，BIP-39，BIP-43和BIP-44标准，如以下部分所述。
 ====
 
 [[bip39]]
 [[mnemonic_code_words]]
-==== Mnemonic Code Words (BIP-39)
+==== 助记码词（BIP-39）
 
-((("wallets", "technology of", "mnemonic code words")))((("mnemonic code words")))((("bitcoin improvement proposals", "Mnemonic Code Words (BIP-39)")))Mnemonic code words are word sequences that encode a random number used as a seed to derive a deterministic wallet. The sequence of words is sufficient to recreate the seed, and from there recreate the wallet and all the derived keys. A wallet application that implements deterministic wallets with mnemonic words will show the user a sequence of 12 to 24 words when first creating a wallet. That sequence of words is the wallet backup, and can be used to recover and recreate all the keys in the same or any compatible wallet application. As we explained earlier, mnemonic word lists make it easier for users to back up wallets, because they are easy to read and correctly transcribe.
+助记码词是对用作种子的随机数进行编码的单词序列，以派生出确定性钱包。这个单词序列足以重新创建种子，并从那里重新创建钱包和所有派生的密钥。实现具有助记词的确定性钱包的钱包应用程序将在首次创建钱包时向用户显示12到24个单词的序列。这一系列单词是钱包备份，可用于恢复和重新创建相同或任何兼容的钱包应用程序中的所有密钥。正如我们之前解释的那样，助记词列表使用户更容易备份钱包，因为它们易于阅读和正确转录。
 
 [NOTE]
 ====
-((("brainwallets")))Mnemonic words are often confused with "brainwallets." They are not the same. The primary difference is that a brainwallet consists of words chosen by the user, whereas mnemonic words are created randomly by the wallet and presented to the user. This important difference makes mnemonic words much more secure, because humans are very poor sources of randomness. Perhaps more importantly, using the term "brainwallet" suggests that the words have to be memorized, which is a terrible idea, and a recipe for not having your backup when you need it.
+助记词通常与“brainwallet”相混淆。它们不一样。主要区别在于brainwallet由用户选择的单词组成，而助记词由钱包随机创建并呈现给用户。这种重要的差异使助记词更加安全，因为人类的随机性非常差。也许更重要的是，使用术语“brainwallet”表示必须记住单词，这是一个可怕的想法，以及在需要时不进行备份的方法。
 ====
 
-Mnemonic codes are defined in BIP-39. Note that BIP-39 is one implementation of a mnemonic code standard. There is a different standard, _with a different set of words_, used by the Electrum Bitcoin wallet and predating BIP-39. BIP-39 was proposed by the company behind the Trezor hardware wallet and is incompatible with Electrum's implementation. However, BIP-39 has now achieved broad industry support across dozens of interoperable implementations and should be considered the _de facto_ industry standard. Furthermore, BIP-39 can be used to produce multicurrency wallets supporting Ethereum, whereas Electrum seeds cannot.
+助记码在BIP-39中定义。请注意，BIP-39是助记码标准的一种实现。有一个不同的标准，该标准有一组不同的单词，由Electrum比特币钱包使用，并且早于BIP-39。 BIP-39由Trezor硬件钱包背后的公司提出，与Electrum的实施不兼容。然而，BIP-39现在已经在数十个可互操作的实现中获得了广泛的行业支持，应该被视为事实上的行业标准。此外，BIP-39可用于生产支持以太坊的多币种钱包，而Electrum种子则不能。
 
-BIP-39 defines the creation of a mnemonic code and seed, which we describe here in nine steps. For clarity, the process is split into two parts: steps 1 through 6 are shown in <<generating_mnemonic_words>> and steps 7 through 9 are shown in <<mnemonic_to_seed>>.
+BIP-39定义了助记码和种子的创建，我们将在这里分九个步骤进行描述。为清楚起见，该过程分为两部分：步骤1到6显示在<<generating_mnemonic_words>>，步骤7到9显示在<<mnemonic_to_seed>>。
 
 [[generating_mnemonic_words]]
-===== Generating mnemonic words
+===== 生成助记词
 
-Mnemonic words are generated automatically by the wallet using the standardized process defined in BIP-39. The wallet starts from a source of entropy, adds a checksum, and then maps the entropy to a word list:
+钱包使用BIP-39中定义的标准化流程自动生成助记词。钱包从熵源开始，添加校验和（checksum），然后将熵映射到一个单词列表：
 
-1. Create a cryptographically random sequence +S+ of 128 to 256 bits.
-2. Create a checksum of +S+ by taking the first length-of-++S++ ÷ 32 bits of the SHA-256 hash of +S+.
-3. Add the checksum to the end of the random sequence +S+.
-4. Divide the sequence-and-checksum concatenation into sections of 11 bits.
-5. Map each 11-bit value to a word from the predefined dictionary of 2,048 words.
-6. Create the mnemonic code from the sequence of words, maintaining the order.
+1. 创建一个128到256位的加密随机序列S.
+2. 通过取S的SHA-256哈希的第一个S长度÷32位来创建S的校验和。
+3. 将校验和添加到随机序列S的末尾。
+4. 将序列和校验和的连接划分成11位的分段。
+5. 将每个11位分段的值映射到来自2,048个单词的预定义字典中的单词。
+6. 从单词序列创建助记码，维护顺序。
 
-<<generating_entropy_and_encoding>> shows how entropy is used to generate mnemonic words.
+<<generating_entropy_and_encoding>>显示了如何使用熵来生成助记词。
 
 [[generating_entropy_and_encoding]]
 [role="smallerseventy"]
 .Generating entropy and encoding as mnemonic words
 image::images/bip39-part1.png["Generating entropy and encoding as mnemonic words"]
 
-<<table_bip39_entropy>> shows the relationship between the size of the entropy data and the length of mnemonic codes in words.
+<<table_bip39_entropy>>显示了熵数据的大小与单词中助记码的长度之间的关系。
 
 [[table_bip39_entropy]]
 .Mnemonic codes: entropy and word length
@@ -195,20 +194,20 @@ image::images/bip39-part1.png["Generating entropy and encoding as mnemonic words
 |=======
 
 [[mnemonic_to_seed]]
-===== From mnemonic to seed
+===== 从助记词到种子
 
-((("key-stretching function")))((("PBKDF2 function")))The mnemonic words represent entropy with a length of 128 to 256 bits. The entropy is then used to derive a longer (512-bit) seed through the use of the key-stretching function PBKDF2. The seed produced is used to build a deterministic wallet and derive its keys.
+助记词代表长度为128到256位的熵。然后通过使用密钥拉伸函数PBKDF2，熵被用来派生出更长（512位）的种子。生成的种子用于构建确定性钱包并派生其密钥。
 
-((("salts")))((("passphrases")))The key-stretching function takes two parameters: the mnemonic and a _salt_. The purpose of a salt in a key-stretching function is to make it difficult to build a lookup table enabling a brute-force attack. In the BIP-39 standard, the salt has another purpose: it allows the introduction of a passphrase that serves as an additional security factor protecting the seed, as we will describe in more detail in <<mnemonic_passphrase>>.
+密钥拉伸函数有两个参数：助记词和salt。密钥拉伸函数中的salt的目的是使得难以构建能够支持暴力攻击的查找表。在BIP-39标准中，salt具有另一个目的：它允许引入一个密码，作为保护种子的附加安全因子，我们将在<<mnemonic_passphrase>>中更详细地描述。
 
-The process described in steps 7 through 9 continues from the process described in the previous section:
+步骤7到9中描述的过程从上一节中描述的过程继续：
 
 [start=7]
-7. The first parameter to the PBKDF2 key-stretching function is the _mnemonic_ produced in step 6.
-8. The second parameter to the PBKDF2 key-stretching function is a _salt_. The salt is composed of the string constant +"mnemonic"+ concatenated with an optional user-supplied passphrase.
-9. PBKDF2 stretches the mnemonic and salt parameters using 2,048 rounds of hashing with the HMAC-SHA512 algorithm, producing a 512-bit value as its final output. That 512-bit value is the seed.
+7. PBKDF2密钥拉伸函数的第一个参数是步骤6中产生的助记词。
+8. PBKDF2密钥拉伸函数的第二个参数是salt。 salt由字符串常量“mnemonic”和可选的用户提供的密码组成。
+9. PBKDF2使用HMAC-SHA512算法通过2,048轮哈希来拉伸助记词和salt参数，产生512位的值作为其最终输出。那个512位的值是种子。
 
-<<mnemonic_to_seed_figure>> shows how a mnemonic is used to generate a seed.
+<<mnemonic_to_seed_figure>>显示了如何使用助记词来生成种子。
 
 [[mnemonic_to_seed_figure]]
 .From mnemonic to seed
@@ -216,10 +215,10 @@ image::images/bip39-part2.png["From mnemonic to seed"]
 
 [NOTE]
 ====
-The key-stretching function, with its 2,048 rounds of hashing, is a somewhat effective protection against brute-force attacks against the mnemonic or the passphrase. It makes it costly (in computation) to try more than a few thousand passphrase and mnemonic combinations, while the number of possible derived seeds is vast (2^512^, or about 10^154^)&#x2014;far bigger than the number of atoms in the visible universe (about 10^80^).
+具有2,048轮哈希的密钥拉伸函数可有效防止对助记词或密码的暴力攻击。它使得尝试超过几千个密码和助记词组合成本很高（在计算中），而可能派生的种子的数量是巨大的（2^512^，或大约10^154^） - 比可见宇宙中的原子数量大（约10^80^）。
 ====
 
-Tables pass:[<a data-type="xref" data-xrefstyle="select:labelnumber" href="#mnemonic_128_no_pass">#mnemonic_128_no_pass</a>, <a data-type="xref" data-xrefstyle="select:labelnumber" href="#mnemonic_128_w_pass">#mnemonic_128_w_pass</a>, and <a data-type="xref" data-xrefstyle="select:labelnumber" href="#mnemonic_256_no_pass">#mnemonic_256_no_pass</a>] show some examples of mnemonic codes and the seeds they produce.
+表 pass:[<a data-type="xref" data-xrefstyle="select:labelnumber" href="#mnemonic_128_no_pass">#mnemonic_128_no_pass</a>, <a data-type="xref" data-xrefstyle="select:labelnumber" href="#mnemonic_128_w_pass">#mnemonic_128_w_pass</a>, 和 <a data-type="xref" data-xrefstyle="select:labelnumber" href="#mnemonic_256_no_pass">#mnemonic_256_no_pass</a>] 显示了助记码及其产生的种子的一些例子。
 
 [[mnemonic_128_no_pass]]
 .128-bit entropy mnemonic code, no passphrase, resulting seed
@@ -257,120 +256,120 @@ luggage oxygen faint major edit measure invite love trap field dilemma oblige+
 |=======
 
 [[mnemonic_passphrase]]
-===== Optional passphrase in BIP-39
+===== BIP-39中的可选密码
 
-((("passphrases")))The BIP-39 standard allows the use of an optional passphrase in the derivation of the seed. If no passphrase is used, the mnemonic is stretched with a salt consisting of the constant string +"mnemonic"+, producing a specific 512-bit seed from any given mnemonic. If a passphrase is used, the stretching function produces a _different_ seed from that same mnemonic. In fact, given a single mnemonic, every possible passphrase leads to a different seed. Essentially, there is no "wrong" passphrase. All passphrases are valid and they all lead to different seeds, forming a vast set of possible uninitialized wallets. The set of possible wallets is so large (2^512^) that there is no practical possibility of brute-forcing or accidentally guessing one that is in use, as long as the passphrase has sufficient complexity and length.
+BIP-39标准允许在种子的派生中使用可选的密码。如果没有使用密码，则使用由常量字符串“mnemonic”组成的salt来延长助记词，从任何给定的助记词产生特定的512位种子。如果使用密码，则拉伸函数会产生与该相同助记词不同的种子。实际上，给定单个助记词，每个可能的密码都会导致不同的种子。基本上，没有“错误的”密码。所有的密码都是有效的，它们都会导致生成不同的种子，形成一大堆可能未初始化的钱包。一组可能的钱包个数是如此之大（2^512^），只要密码具有足够的复杂性和长度，就没有对正在使用的钱包进行实际可能的暴力破解或意外猜测的可能。
 
 [TIP]
 ====
-There are no "wrong" passphrases in BIP-39. Every passphrase leads to some wallet, which unless previously used will be empty.
+BIP-39中没有“错误”的密码。每个密码都会导致一个钱包，除非之前使用过，否则将为空。
 ====
 
-The optional passphrase creates two important features:
+可选的密码创建了两个重要功能：
 
-* A second factor (something memorized) that makes a mnemonic useless on its own, protecting mnemonic backups from compromise by a thief.
+* 第二个因素（记忆的东西）使助记词本身无用，保护助记词备份免受小偷的攻击。
 
-* A form of plausible deniability or "duress wallet," where a chosen passphrase leads to a wallet with a small amount of funds, used to distract an attacker from the "real" wallet that contains the majority of funds.
+* 一种似是而非的否认或“胁迫的钱包”，其中所选择的密码导致带有少量资金的钱包，用于分散攻击者对包含大部分资金的“真实”钱包的注意力。
 
-However, it is important to note that the use of a passphrase also introduces the risk of loss:
+但是，重要的是要注意使用密码还是会带来丢失的风险：
 
-* If the wallet owner is incapacitated or dead and no one else knows the passphrase, the seed is useless and all the funds stored in the wallet are lost forever.
+* 如果钱包所有者无行为能力或死亡并且没有其他人知道密码，则种子无用，并且存储在钱包中的所有资金将永远丢失。
 
-* Conversely, if the owner backs up the passphrase in the same place as the seed, it defeats the purpose of a second factor.
+* 相反，如果所有者在与种子相同的位置备份密码，则会违背第二个因素的目的。
 
-While passphrases are very useful, they should only be used in combination with a carefully planned process for backup and recovery, considering the possibility of heirs surviving the owner being able to recover the cryptocurrency.
+虽然密码非常有用，但它们应该只与精心规划的备份和恢复过程结合使用，考虑到继承人能够恢复加密货币的可能性。
 
 [[working_mnemonic_codes]]
-===== Working with mnemonic codes
+===== 使用助记码
 
-BIP-39 is implemented as a library in many different programming languages. For example:
+BIP-39作为许多不同编程语言的库实现。例如：
 
-https://github.com/trezor/python-mnemonic[python-mnemonic]:: The reference implementation of the standard by the SatoshiLabs team that proposed BIP-39, in Python
+https://github.com/trezor/python-mnemonic[python-mnemonic]:: SatoshiLabs团队在Python中提出BIP-39的标准参考实现
 
-https://github.com/ConsenSys/eth-lightwallet[ConsenSys/eth-lightwallet]:: Lightweight JS Ethereum wallet for nodes and browser (with BIP-39)
+https://github.com/ConsenSys/eth-lightwallet[ConsenSys/eth-lightwallet]:: 用于节点和浏览器的轻量级JS以太坊钱包（使用BIP-39）
 
-https://www.npmjs.com/package/bip39[npm/bip39]:: JavaScript implementation of Bitcoin BIP-39: Mnemonic code for generating deterministic keys
+https://www.npmjs.com/package/bip39[npm/bip39]:: 比特币BIP-39的JavaScript实现：用于生成确定性密钥的助记码
 
-There is also a BIP-39 generator implemented in a standalone web page (<<a_bip39_generator_as_a_standalone_web_page>>), which is extremely useful for testing and experimentation. The https://iancoleman.io/bip39/[Mnemonic Code Converter] generates mnemonics, seeds, and extended private keys. It can be used offline in a browser, or accessed online.
+还有一个BIP-39生成器在一个独立的网页（<<a_bip39_generator_as_a_standalone_web_page>>）中实现，这对测试和实验非常有用。 https://iancoleman.io/bip39/[Mnemonic Code Converter] 生成助记词，种子和扩展私钥。它可以在浏览器中脱机使用，也可以在线访问。
 
 [[a_bip39_generator_as_a_standalone_web_page]]
 .A BIP-39 generator as a standalone web page
 image::images/bip39_web.png["BIP-39 generator web-page"]
 
 [[create_hd_wallet]]
-==== Creating an HD Wallet from the Seed
+==== 从种子创建一个HD钱包
 
-((("wallets", "technology of", "creating HD wallets from root seed")))((("root seeds")))((("hierarchical deterministic (HD) wallets")))HD wallets are created from a single _root seed_, which is a 128-, 256-, or 512-bit random number. Most commonly, this seed is generated from a mnemonic as detailed in the previous section.
+HD钱包是从单个根种子创建的，该种子是128位，256位或512位随机数。最常见的是，这种种子是由助记词生成的，如上一节所述。
 
-Every key in the HD wallet is deterministically derived from this root seed, which makes it possible to recreate the entire HD wallet from that seed in any compatible HD wallet. This makes it easy to export, back up, restore, and import HD wallets containing thousands or even millions of keys by transferring just the mnemonic from which the root seed is derived.
+HD钱包中的每个密钥都是从这个根种子确定性地派生的，这使得可以在任何兼容的HD钱包中从该种子重新创建整个HD钱包。这样，只需传输从中派生出根种子的助记词，即可轻松导出，备份，恢复和导入包含数千甚至数百万个密钥的HD钱包。
 
 [[bip32_bip43_44]]
-==== HD Wallets (BIP-32) and Paths (BIP-43/44)
+==== HD钱包（BIP-32）和路径（BIP-43/44）
 
-Most HD wallets follow the BIP-32 standard, which has become a _de facto_ industry standard for deterministic key generation.
+大多数HD钱包都遵循BIP-32标准，该标准已成为确定性密钥生成的事实上的行业标准。
 
-We won't be discussing all the details of BIP-32 here, only the components necessary to understand how it is used in wallets. The main important aspect is the tree-like hierarchical relationships that it is possible for the derived keys to have, as you can see in <<hd_wallets_figure>>. It's also important to understand the ideas of _extended keys_ and _hardened keys_, which are explained in the following sections.
+我们不会在这里讨论BIP-32的所有细节，只讨论了解如何在钱包中使用BIP-32所需的组件。主要的重要方面是派生密钥可能拥有的树状层次关系，正如你在<<hd_wallets_figure>>中看到的。理解扩展密钥和强化密钥的思想也很重要，这将在以下各节中进行说明。
 
-There are dozens of interoperable implementations of BIP-32 offered in many software libraries. These are mostly designed for Bitcoin wallets, which implement addresses in a different way, but share the same key-derivation implementation as Ethereum's BIP-32-compatible wallets. Use one https://github.com/ConsenSys/eth-lightwallet[designed for Ethereum], or adapt one from Bitcoin by adding an Ethereum address encoding library.
+在许多软件库中提供了许多可互操作的BIP-32实现。这些主要为比特币钱包而设计，它们以不同的方式实现地址，但与以太坊的兼容BIP-32的钱包共享相同的密钥派生实现。使用 https://github.com/ConsenSys/eth-lightwallet[专为以太坊设计] 的一个钱包，或通过添加以太坊地址编码库从比特币中改编一个。
 
-There is also a BIP-32 generator implemented as a http://bip32.org/[standalone web page] that is very useful for testing and experimentation with BIP-32.
+还有一个BIP-32生成器作为 http://bip32.org/[独立的网页实现] ，对于BIP-32的测试和实验非常有用。
 
 [WARNING]
 ====
-The standalone BIP-32 generator is not an HTTPS site. That's to remind you that the use of this tool is not secure. It is only for testing. You should not use the keys produced by this site with real funds.
+这个独立的BIP-32生成器不是HTTPS站点。这是为了提醒你使用此工具并不安全。它仅用于测试。你不应该使用本网站生成的密钥用于真实资金。
 ====
 
 [[extended_keys]]
-===== Extended public and private keys
+===== 扩展的公钥和私钥
 
-In BIP-32 terminology, keys can be "extended.&#x201d; With the right mathematical operations, these extended "parent" keys can be used to derive "child" keys, thus producing the hierarchy of keys and addresses described earlier. A parent key doesn't have to be at the top of the tree. It can be picked out from anywhere in the tree hierarchy. Extending a key involves taking the key itself and appending a special _chain code_ to it. A chain code is a 256-bit binary string that is mixed with each key to produce child keys.
+在BIP-32术语中，密钥可以被“扩展”。通过正确的数学运算，这些被扩展的“父”密钥可用于派生“子”密钥，从而产生前面描述的密钥和地址的层次结构。父密钥不一定必须位于树的顶部。它可以从树层次结构的任何地方挑选出来。扩展一个密钥包括获取密钥本身并追加一个特殊的链码。链码是256位二进制串，其与每个密钥混合以生成子密钥。
 
-If the key is a private key, it becomes an _extended private key_ distinguished by the prefix +xprv+:
+如果密钥是一个私钥，它成为由前缀xprv区分的扩展私钥：
 
 [[xprv_example]]
 ----
 xprv9s21ZrQH143K2JF8RafpqtKiTbsbaxEeUaMnNHsm5o6wCW3z8ySyH4UxFVSfZ8n7ESu7fgir8i...
 ----
 
-An _extended public key_ is distinguished by the prefix +xpub+:
+一个扩展公钥由前缀xpub区分：
 
 [[xpub_example]]
 ----
 xpub661MyMwAqRbcEnKbXcCqD2GT1di5zQxVqoHPAgHNe8dv5JP8gWmDproS6kFHJnLZd23tWevhdn...
 ----
 
-A very useful characteristic of HD wallets is the ability to derive child public keys from parent public keys, _without_ having the private keys. This gives us two ways to derive a child public key: either directly from the child private key, or from the parent public key.
+HD钱包的一个非常有用的特性是能够从父公钥派生出子公钥而无需私钥。这为我们提供了两种方法来派生子公钥：直接来自子私钥，或者来自父公钥。
 
-An extended public key can be used, therefore, to derive all of the public keys (and only the public keys) in that branch of the HD wallet structure.
+因此，可以使用扩展公钥来派生出HD钱包结构的该分支中的所有公钥（仅公钥）。
 
-This shortcut can be used to create very secure public key&#x2013;only deployments, where a server or application has a copy of an extended public key, but no private keys whatsoever. That kind of deployment can produce an infinite number of public keys and Ethereum addresses, but cannot spend any of the money sent to those addresses. Meanwhile, on another, more secure server, the extended private key can derive all the corresponding private keys to sign transactions and spend the money.
+此快捷方式可用于创建非常安全的仅包含公钥的部署，其中服务器或应用程序具有一个扩展公钥的副本，但不包含任何私钥。这种部署可以产生无限数量的公钥和以太坊地址，但不能发送任何钱到这些地址。同时，在另一个更安全的服务器上，扩展私钥可以导出所有相应的私钥以签署交易并花钱。
 
-One common application of this method is to install an extended public key on a web server that serves an ecommerce application. The web server can use the public key derivation function to create a new Ethereum address for every transaction (e.g., for a customer shopping cart), and will not have any private keys that would be vulnerable to theft. Without HD wallets, the only way to do this is to generate thousands of Ethereum addresses on a separate secure server and then preload them on the ecommerce server. That approach is cumbersome and requires constant maintenance to ensure that the server doesn't run out of keys, hence the preference to use extended public keys from HD wallets.
+此方法的一个常见应用是在服务于电子商务应用程序的Web服务器上安装扩展公钥。 Web服务器可以使用公钥派生功能为每笔交易（例如，对于一个客户购物车）创建一个新的以太坊地址，并且将不具有任何易受盗窃的私钥。如果没有HD钱包，唯一的方法是在单独的安全服务器上生成数千个以太坊地址，然后在电子商务服务器上预加载它们。这种方法很麻烦，需要不断维护以确保服务器不会耗尽密钥，因此优先使用HD钱包中的扩展公钥。
 
-((("cold storage")))((("storage", "cold storage")))((("hardware wallets")))Another common application of this solution is for cold-storage or hardware wallets. In that scenario, the extended private key can be stored in a hardware wallet, while the extended public key can be kept online. The user can create "receive" addresses at will, while the private keys are safely stored offline. To spend the funds, the user can use the extended private key in an offline signing Ethereum client, or sign transactions on the hardware wallet device.
+该解决方案的另一个常见应用是用于冷藏或硬件钱包。在这种场景下，扩展私钥可以存储在硬件钱包中，而扩展公钥可以保持在线。用户可以随意创建“接收”地址，而私钥可以安全地离线存储。为了花费资金，用户可以在脱机签名以太坊客户端中使用扩展私钥，或者在硬件钱包设备上签署交易。
 
 [[hardened_child_key]]
-===== Hardened child key derivation
+===== 强化子密钥派生
 
-((("public and private keys", "hardened child key derivation")))((("hardened derivation")))The ability to derive a branch of public keys from an extended public key, or _xpub_, is very useful, but it comes with a potential risk. Access to an xpub does not give access to child private keys. However, because the xpub contains the chain code (used to derive child public keys from the parent public key), if a child private key is known, or somehow leaked, it can be used with the chain code to derive all the other child private keys. A single leaked child private key, together with a parent chain code, reveals all the private keys of all the children. Worse, the child private key together with a parent chain code can be used to deduce the parent private key.
+从一个扩展公钥或xpub派生公钥分支的能力非常有用，但它带来了潜在的风险。访问一个xpub不允许访问子私钥。但是，因为xpub包含链码（用于从父公钥派生子公钥），如果一个子私钥已知或以某种方式泄露，它可以与链码一起使用以派生所有其他子私钥。单个泄露的子私钥与父链码一起可以推导出所有子私钥。更糟糕的是，子私钥和父链码可用于推导父私钥。
 
-To counter this risk, HD wallets use an alternative derivation function called _hardened derivation_, which "breaks" the relationship between parent public key and child chain code. The hardened derivation function uses the parent private key to derive the child chain code, instead of the parent public key. This creates a "firewall" in the parent/child sequence, with a chain code that cannot be used to compromise a parent or sibling private key.
+为了应对这种风险，HD钱包使用一种称为强化派生的替代派生函数，该函数“打破”父公钥和子链码之间的关系。强化派生函数使用父私钥来派生子链码，而不是父公钥。这会在父/子序列中创建一个“防火墙”，其链码不能用于破坏父代或兄弟私钥。
 
-In simple terms, if you want to use the convenience of an xpub to derive branches of public keys without exposing yourself to the risk of a leaked chain code, you should derive it from a hardened parent, rather than a normal parent. Best practice is to have the level-1 children of the master keys always derived by hardened derivation, to prevent compromise of the master keys.
+简单来说，如果你希望使用xpub的便利来派生公钥的分支而不让自己暴露于泄露的链码的风险，那么你应该从强化的父代而不是普通的父代派生它。最佳实践是使主密钥的1级子密钥始终通过强化派生派生，以防止损坏主密钥。
 
 [[index_number]]
-===== Index numbers for normal and hardened derivation
+===== 正常和硬化派生的索引号
 
-It is clearly desirable to be able to derive more than one child key from a given parent key. To manage this, an index number is used. Each index number, when combined with a parent key using the special child derivation function, gives a different child key. The index number used in the BIP-32 parent-to-child derivation function is a 32-bit integer. To easily distinguish between keys derived through the normal (unhardened) derivation function versus keys derived through hardened derivation, this index number is split into two ranges. Index numbers between 0 and 2^31^&#x2013;1 (+0x0+ to +0x7FFFFFFF+) are used _only_ for normal derivation. Index numbers between 2^31^ and 2^32^&#x2013;1 (+0x80000000+ to +0xFFFFFFFF+) are used _only_ for hardened derivation. Therefore, if the index number is less than 2^31^, the child is normal, whereas if the index number is equal to or above 2^31^, the child is hardened.
+能够从给定的父密钥派生出多个子密钥显然是可取的。要管理它，使用索引号。每个索引号当与使用特殊子派生函数的父密钥组合时，给出不同的子密钥。 BIP-32父到子派生函数中使用的索引号是32位整数。为了容易区分通过正常（未强化）派生函数派生的密钥与通过强化派生函数派生的密钥，该索引号被分成两个范围。 0到2^31^（0x0到0x7FFFFFFF）之间的索引号仅用于正常派生。 2^31^和2^32^之间的索引号（0x80000000至0xFFFFFFFF）仅用于硬化派生。因此，如果索引号小于231，则子密钥是正常的，而如果索引号等于或大于231，则子密钥是强化的。
 
-To make the index numbers easier to read and display, the index numbers for hardened children are displayed starting from zero, but with a prime symbol. The first normal child key is therefore displayed as +0+, whereas the first hardened child (index +0x80000000+) is displayed as ++0&#x27;++. In sequence, then, the second hardened key would have index of +0x80000001+ and would be displayed as ++1&#x27;++, and so on. When you see an HD wallet index ++i&#x27;++, that means 2^31^ pass:[+] ++i++.
+为了使索引号更易于阅读和显示，强化子密钥的索引号从零开始显示，但带有一个素数符号。因此，第一个普通子密钥显示为0，而第一个硬化子密钥（索引0x80000000）显示为0＆＃x27;。然后，按顺序，第二个强化密钥的索引为0x80000001，并显示为1＆＃x27;，依此类推。当你看到HD钱包索引i＆＃x27;时，这意味着2^31^ + i。
 
 [[hd_wallet_path]]
-===== HD wallet key identifier (path)
+===== HD钱包密钥标识符（路径）
 
-((("hierarchical deterministic (HD) wallets")))Keys in an HD wallet are identified using a "path" naming convention, with each level of the tree separated by a slash (/) character (see <<hd_path_table>>). Private keys derived from the master private key start with +m+. Public keys derived from the master public key start with +M+. Therefore, the first child private key of the master private key is +m/0+. The first child public key is +M/0+. The second grandchild of the first child is +m/0/1+, and so on.
+HD钱包中的密钥使用“路径”命名约定来标识，树的每个级别用斜杠（/）字符分隔（请参阅<<hd_path_table>>）。从主私钥派生的私钥以m开头。从主公钥派生的公钥以M开头。因此，主私钥的第一个子私钥是m/0。第一个子公钥是M/0。第一个孩子的第二个孙子是m/0/1，依此类推。
 
-The "ancestry" of a key is read from right to left, until you reach the master key from which it was derived. For example, identifier +m/x/y/z+ describes the key that is the ++z++-th child of key +m/x/y+, which is the ++y++-th child of key +m/x+, which is the ++x++-th child of +m+.
+从右到左读取密钥的“祖先”，直到你到达从中导出密钥的主密钥。例如，标识符m/x/y/z描述了密钥m/x/y的第z个子密钥，它是密钥m/x的第y个子密钥，它是m的第x个子密钥。
 
 [[hd_path_table]]
 .HD wallet path examples
@@ -385,26 +384,26 @@ The "ancestry" of a key is read from right to left, until you reach the master k
 |=======
 
 [[navigating_hd_wallet_tree]]
-===== Navigating the HD wallet tree structure
+===== 导航HD钱包树结构
 
-The HD wallet tree structure is tremendously flexible. The flip side of this is that it also allows for unbounded complexity: each parent extended key can have 4 billion children: 2 billion normal children and 2 billion hardened children. Each of those children can have another 4 billion children, and so on. The tree can be as deep as you want, with a potentially infinite number of generations. With all that potential, it can become quite difficult to navigate these very large trees.
+HD钱包树结构非常灵活。另一方面，它还允许无限复杂性：每个父扩展密钥可以有40亿子密钥：20亿正常子密钥和20亿强化子密钥。这些子密钥中的每一个都可以有另外40亿个子密钥，依此类推。树可以像你想要的那样深，可能有无数代。有了这些潜力，导航这些非常大的树变得非常困难。
 
-Two BIPs offer a way to manage this potential complexity by creating standards for the structure of HD wallet trees. BIP-43 proposes the use of the first hardened child index as a special identifier that signifies the "purpose" of the tree structure. Based on BIP-43, an HD wallet should use only one level-1 branch of the tree, with the index number defining the purpose of the wallet by identifying the structure and namespace of the rest of the tree. More specifically, an HD wallet using only branch ++m/i&#x27;/...++ is intended to signify a specific purpose and that purpose is identified by index number +i+.
+两个BIP通过为HD钱包树的结构创建标准，提供了一种管理这种潜在复杂性的方法。 BIP-43建议使用第一个强化子索引作为表示树结构“目的”的特殊标识符。基于BIP-43，HD钱包应该只使用树的一个1级分支，其索引号通过识别树的其余部分的结构和命名空间来定义钱包的目的。更具体地说，仅使用分支m/i&#x27;/...的HD钱包旨在表示特定目的，并且该目的由索引号i标识。
 
-Extending that specification, BIP-44 proposes a multicurrency multiaccount structure signified by setting the "purpose" number to +44'+. All HD wallets following the BIP-44 structure are identified by the fact that they only use one branch of the tree: +m/44'/*+.
+扩展该规范，BIP-44提出了一种多币种多帐户结构，通过将“目的”数字设置为44'来表示。遵循BIP-44结构的所有HD钱包都通过以下事实来识别：它们仅使用树的一个分支：m/44'/*。
 
-BIP-44 specifies the structure as consisting of five predefined tree levels:
+BIP-44将结构指定为由五个预定义树级组成：
 
 [[bip44_tree]]
 -----
 m / purpose' / coin_type' / account' / change / address_index
 -----
 
-The first level, +purpose&#x27;+, is always set to +44&#x27;+. The second level, +coin_type&#x27;+, specifies the type of cryptocurrency coin, allowing for multicurrency HD wallets where each currency has its own subtree under the second level. There are several currencies defined in a standards document called https://github.com/satoshilabs/slips/blob/master/slip-0044.md[SLIP0044]; for example, Ethereum is ++m/44&#x27;/60&#x27;++, Ethereum Classic is ++m/44&#x27;/61&#x27;++, Bitcoin is ++m/44&#x27;/0&#x27;++, and Testnet for all currencies is ++m/44&#x27;/1&#x27;++.
+第一级，purpose &#x27;，始终设置为44&#x27;。第二级，coin_type &#x27;，指定加密货币的类型，允许多币种HD钱包，其中每种货币在第二级别下具有自己的子树。标准文件 https://github.com/satoshilabs/slips/blob/master/slip-0044.md[SLIP0044] 中定义了几种货币;例如，以太坊是m/44&#x27;/60&#x27;，以太坊经典是m/44&#x27;/61&#x27;,比特币是m/44&#x27;/0&#x27;,和所有的Testnet货币是m/44&#x27;/1&#x27;。
 
-The third level of the tree is +account&#x27;+, which allows users to subdivide their wallets into separate logical subaccounts for accounting or organizational purposes. For example, an HD wallet might contain two Ethereum "accounts": ++m/44&#x27;/60&#x27;/0&#x27;++ and ++m/44&#x27;/60&#x27;/1&#x27;++. Each account is the root of its own subtree.
+树的第三层是account &#x27;，它允许用户将其钱包细分为单独的逻辑子帐户，以用于会计或组织目的。例如，一个HD钱包可能包含两个以太坊“帐户”：m/44&#x27;/60&#x27;/0&#x27; 和 m/44&#x27;/60&#x27;/1&#x27;。每个帐户都是其子树的根。
 
-((("keys and addresses", see="also public and private keys")))Because BIP-44 was created originally for Bitcoin, it contains a "quirk" that isn't relevant in the Ethereum world. On the fourth level of the path, +change+, an HD wallet has two subtrees: one for creating receiving addresses and one for creating change addresses. Only the "receive" path is used in Ethereum, as there is no necessity for a change address like there is in Bitcoin. Note that whereas the previous levels used hardened derivation, this level uses normal derivation. This is to allow the account level of the tree to export extended public keys for use in a nonsecured environment. Usable addresses are derived by the HD wallet as children of the fourth level, making the fifth level of the tree the +address_index+. For example, the third receiving address for Ethereum payments in the primary account would be ++M/44&#x27;/60&#x27;/0&#x27;/0/2++. <<bip44_path_examples>> shows a few more examples.
+因为BIP-44最初是为比特币创建的，所以它包含一个与以太坊世界无关的“怪癖”。在路径的第四级，change，HD钱包有两个子树：一个用于创建接收地址，另一个用于创建更改地址。在以太坊中只使用“接收”路径，因为没有像比特币那样需要更改地址。请注意，虽然之前的层级使用了强化派生，但此层级使用常规派生。这是为了允许树的account层级导出扩展公钥以在非安全环境中使用。可用地址由HD钱包作为第四层级的子级派生，生成树的第五层级address_index。例如，主帐户中以太坊支付的第三个接收地址为M/44&#x27;/60&#x27;/0&#x27;/0/2。<<bip44_path_examples>>显示了更多示例。
 
 [[bip44_path_examples]]
 .BIP-44 HD wallet structure examples
@@ -416,6 +415,6 @@ The third level of the tree is +account&#x27;+, which allows users to subdivide 
 | ++m/44&#x27;/2&#x27;/0&#x27;/0/1++ | The second private key in the Litecoin main account, for signing transactions
 |=======
 
-=== Conclusions
+=== 总结
 
-Wallets are the foundation of any user-facing blockchain application. They allow users to manage collections of keys and addresses. Wallets also allow users to demonstrate their ownership of ether, and authorize transactions, by applying digital signatures, as we will see in <<tx_chapter>>. 
+钱包是任何面向用户的区块链应用程序的基础。它们允许用户管理密钥和地址的集合。钱包还允许用户通过应用数字签名来证明他们对ether的所有权，并授权交易，我们将在<<tx_chapter>>中看到。
