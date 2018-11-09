@@ -1,63 +1,63 @@
 [[tx_chapter]]
-== Transactions
+== 交易
 
-Transactions are signed messages originated by an externally owned account, transmitted by the Ethereum network, and recorded on the Ethereum blockchain. This basic definition conceals a lot of surprising and fascinating details. Another way to look at transactions is that they are the only things that can trigger a change of state, or cause a contract to execute in the EVM. Ethereum is a global singleton state machine, and transactions what make that state machine "tick", changing its state. Contracts don't run on their own. Ethereum doesn't run  autonomously. Everything starts with a transaction.
+交易是由外部拥有的账户发起的签名消息，由以太坊网络传输，并记录在以太坊区块链上。这个基本定义隐藏了许多令人惊讶和迷人的细节。查看交易的另一种方法是，它们是唯一可以触发状态更改或导致合约在EVM中执行的事物。以太坊是一个全局单例状态机，交易使状态机“滴答”，改变其状态。合约不会自己运行。以太坊不会自主运行。一切都始于交易。
 
-In this chapter, we will dissect transactions, show how they work, and examine the details. Note that much of this chapter is addressed to those who are interested in managing their own transactions at a low level, perhaps because they are writing a wallet app; you don't have to worry about this if you are happy using existing wallet applications, although you may find the details interesting!
+在本章中，我们将剖析交易，展示它们的工作方式，并检查细节。请注意，本章的大部分内容针对的是那些有兴趣在低级别管理自己的交易的人，也许是因为他们正在编写钱包应用程序;如果你对使用现有的钱包应用程序感到满意，你不必担心这一点，尽管你可能会发现有趣的细节！
 
 [[tx_struct]]
-=== The Structure of a Transaction
+=== 交易的结构
 
-First let's take a look at the basic structure of a transaction, as it is serialized and transmitted on the Ethereum network. Each client and application that receives a serialized transaction will store it in-memory using its own internal data structure, perhaps embellished with metadata that doesn't exist in the network serialized transaction itself. The network-serialization is the only standard form of a transaction.
+首先让我们看一下交易的基本结构，因为它是在以太坊网络上序列化和传输的。接收序列化交易的每个客户端和应用程序将使用其自己的内部数据结构将其存储在内存中，可能使用在网络序列化交易中本身不存在的元数据进行修饰。网络序列化是交易的唯一标准形式。
 
-A transaction is a serialized binary message that contains the following data:
+交易是包含以下数据的序列化二进制消息：
 
-Nonce:: A sequence number, issued by the originating EOA, used to prevent message replay
+Nonce:: 由始发EOA发出的序列号，用于防止重放消息
 
-Gas price:: The price of gas (in wei) the originator is willing to pay
+Gas price:: 发起人愿意支付的gas价格（以wei为单位）
 
-Gas limit:: The maximum amount of gas the originator is willing to buy for this transaction
+Gas limit:: 发起人愿意为此次交易支付的最大gas量
 
-Recipient:: The destination Ethereum address
+Recipient:: 目的地以太坊地址
 
-Value:: The amount of ether to send to the destination
+Value:: 要发送到目的地的ether数量
 
-Data:: The variable-length binary data payload
+Data:: 可变长度二进制数据负载
 
-v,r,s:: The three components of an ECDSA digital signature of the originating EOA
+v,r,s:: 始发EOA的ECDSA数字签名的三个组成部分
 
-The transaction message's structure is serialized using the Recursive Length Prefix (RLP) encoding scheme, which was created specifically for simple, byte-perfect data serialization in Ethereum. All numbers in Ethereum are encoded as big-endian integers, of lengths that are multiples of 8 bits.
+交易消息的结构使用递归长度前缀（RLP）编码方案进行序列化，该方案是专为以太坊中简单的字节完美数据序列化而创建的。以太坊中的所有数字都被编码为大端法整数，长度为8位的倍数。
+	
+请注意，为清楚起见，此处显示了字段标签（to，gas limit等），但它们不是交易序列化数据的一部分，交易序列化数据包含RLP编码的字段值。通常，RLP不包含任何字段分隔符或标签。 RLP的长度前缀用于标识每个字段的长度。超出定义长度的任何内容都属于结构中的下一个字段。
 
-Note that the field labels (+to+, +gas limit+, etc.) are shown here for clarity, but are not part of the transaction serialized data, which contains the field values RLP-encoded. In general, RLP does not contain any field delimiters or labels. RLP's length prefix is used to identify the length of each field. Anything beyond the defined length, belongs to the next field in the structure.
-
-While this is the actual transaction structure transmitted, most internal representations and user interface visualizations embellish this with additional information, derived from the transaction or from the blockchain.
-
-For example, you may notice there is no &#x201c;from&#x201d; data in the address identifying the originator EOA. That is because the EOA's public key can be derived from the +v,r,s+ components of the ECDSA signature. The address can, in turn, be derived from the public key. When you see a transaction showing a "from" field, that was added by the software used to visualize the transaction. Other metadata frequently added to the transaction by client software includes the block number (once it is mined and included in the blockchain) and a transaction ID (calculated hash). Again, this data is derived from the transaction, and does not form part of the transaction message itself.
+虽然这是实际的传输的交易结构，但大多数内部表示和用户界面可视化都通过从交易或区块链派生的附加信息来修饰。
+	
+例如，你可能会注意到用于标识发起者EOA的地址中没有“from”数据。这是因为EOA的公钥可以从ECDSA签名的v，r，s组件派生。反过来，地址可以从公钥派生。当你看到显示“from”字段的交易时，该字段由用于可视化交易的软件添加。客户端软件经常添加到交易中的其他元数据包括区块号（一旦它被挖矿并包括在区块链中）和交易ID（计算的哈希）。同样，此数据是从交易派生的，并不构成交易消息本身的一部分。
 
 [[tx_nonce]]
-=== The Transaction Nonce
+=== 交易Nonce
 
-The nonce is one of the most important and least understood components of a transaction. The definition in the Yellow Paper (see <<references>>) reads:
+nonce是交易中最重要和最难理解的部分之一。黄皮书中的定义（见<<references>>）如下：
 
 ____
-+nonce+: A scalar value equal to the number of transactions sent from this address or, in the case of accounts with associated code, the number of contract-creations made by this account.
++nonce+: 标量值，等于从此地址发送的交易数量，如果是具有相关代码的帐户，则为此帐户创建的合约创建数量。
 ____
 
-Strictly speaking, the nonce is an attribute of the originating address; that is, it only has meaning in the context of the sending address. However, the nonce is not stored explicitly as part of an account's state on the blockchain. Instead, it is calculated dynamically, by counting the number of confirmed transactions that have originated from an address.
+严格来说，nonce是始发地址的属性;也就是说，它只在发送地址的上下文中有意义。但是，nonce不会明确作为帐户状态的一部分被存储在区块链上。相反，它是通过计算始发地址的已确认交易的数量来动态计算的。
 
-There are two scenarios where the existence of a transaction-counting nonce is important: the usability feature of transactions being included in the order of creation, and the vital feature of transaction duplication protection. Let's look at an example scenario for each of these:
+有两种情况，交易计数nonce的存在很重要：包含在创建顺序中的交易的可用性特征，以及交易重复保护的重要特征。让我们看一下每个场景的示例：
 
-1. Imagine you wish to make two transactions. You have an important payment to make of 6 ether, and also another payment of 8 ether. You sign and broadcast the 6-ether transaction first, because it is the more important one, and then you sign and broadcast the second, 8-ether transaction. Sadly, you have overlooked the fact that your account contains only 10 ether, so the network can't accept both transactions: one of them will fail. Because you sent the more important 6-ether one first, you understandably expect that one to go through and the 8-ether one to be rejected. However, in a decentralized system like Ethereum, nodes may receive the transactions in either order; there is no guarantee that a particular node will have one transaction propagated to it before the other. As such, it will almost certainly be the case that some nodes receive the 6-ether transaction first and others receive the 8-ether transaction first. Without the nonce, it would be random as to which one gets accepted and which rejected. However, with the nonce included, the first transaction you sent will have a nonce of, let's say, 3, while the 8-ether transaction has the next nonce value (i.e., 4). So, that transaction will be ignored until the transactions with nonces from 0 to 3 have been processed, even if it is received first. Phew!
+1. 想象一下，你希望进行两笔交易。你有一笔6个ether的重要支付，还有一笔8个ether的支付。你首先签署并广播6-ether的交易，因为它是更重要的交易，然后你签署并广播第二笔8-ether的交易。遗憾的是，你忽略了这样一个事实：你的帐户只包含10个ether，因此网络无法接受这两笔交易：其中一笔将失败。因为你首先发送了更重要的6-ether，你可以理解地希望6-ether的交易通过而8-ether的交易被拒绝。但是，在像以太坊这样的去中心化系统中，节点可以按任意顺序接收交易;无法保证一笔交易在另一笔交易之前被传播到一个特定节点。因此，几乎可以肯定的是，某些节点首先接收6-ether交易，而其他节点首先接收8-ether交易。没有nonce的话，对于哪一个被接受而哪个被拒绝将是随机的。但是，如果包含nonce，则你发送的第一笔交易将具有nonce（比如3），而8-ether交易具有下一个nonce值（即4）。因此，该交易将被忽略，直到处理了从0到3的nonce的交易，即使它是先收到的。唷！
 
 
-2. Now imagine you have an account with 100 ether. Fantastic! You find someone online who will accept payment in ether for a mcguffin-widget that you really want to buy. You send them 2 ether and they send you the mcguffin-widget. Lovely. To make that 2-ether payment, you signed a transaction sending 2 ether from your account to their account, and then broadcast it to the Ethereum network to be verified and included on the blockchain. Now, without a nonce value in the transaction, a second transaction sending 2 ether to the same address a second time will look exactly the same as the first transaction. This means that anyone who sees your transaction on the Ethereum network (which means everyone, including the recipient or your enemies) can "replay" the transaction again and again and again until all your ether is gone simply by copying and pasting your original transaction and resending it to the network. However, with the nonce value included in the transaction data, _every single transaction is unique_, even when sending the same amount of ether to the same recipient address multiple times. Thus, by having the incrementing nonce as part of the transaction, it is simply not possible for anyone to "duplicate" a payment you have made.
+2. 现在想象你有一个100 ether的帐户。太棒了！你可以在网上找到一位接受ether付款的人，以获取你真正想购买的mcguffin-widget。你发送给他们2 ether，他们发送给你mcguffin-widget。这让人很愉快。为了进行2-ether付款，你签署了一笔交易，将你的帐户中的2个ether发送到他们的帐户，然后将其广播到以太坊网络进行验证并包含在区块链中。现在，在交易中没有nonce值的情况下，第二次将2 ether发送到同一地址的第二笔交易看起来与第一笔交易完全相同。这意味着，任何在以太坊网络上看到你的交易的人（这意味着每个人，包括收件人或你的敌人）都可以一次又一次地“重放”该交易，直到你的所有ether简单地通过复制和粘贴你的原始交易并将其重新发送到网络而消失。但是，如果交易数据中包含nonce值，则每笔交易都是唯一的，即使多次向同一个接收地址发送相同数量的ether也是如此。因此，通过将递增的nonce作为交易的一部分，任何人都无法“复制”你发起的支付。
 
-In summary, it is important to note that the use of the nonce is actually vital for an _account-based_ protocol, in contrast to the &#x201c;Unspent Transaction Output&#x201d; (UTXO) mechanism of the Bitcoin protocol.
+总之，重要的是要注意，与比特币协议的“未花费交易输出”（UTXO）机制相比，使用nonce对于基于帐户的协议实际上是至关重要的。
 
 [[tracking_nonce]]
-==== Keeping Track of Nonces
+==== 跟踪Nonces
 
-In practical terms, the nonce is an up-to-date count of the number of _confirmed_ (i.e., on-chain) transactions that have originated from an account. To find out what the nonce is, you can interrogate the blockchain, for example via the web3 interface. Open a JavaScript console in a browser with MetaMask running, or use the +truffle console+ command to access the JavaScript web3 library, then type:
+实际上，nonce是源自一个帐户的已确认（即，链上）交易数量的最新计数。要找出nonce是什么，你可以查询区块链，例如通过web3接口。在运行MetaMask的浏览器中打开JavaScript控制台，或使用truffle console命令访问JavaScript web3库，然后键入：
 
 ++++
 <pre data-type="programlisting">
@@ -68,20 +68,20 @@ In practical terms, the nonce is an up-to-date count of the number of _confirmed
 
 [TIP]
 ====
-The nonce is a zero-based counter, meaning the first transaction has nonce 0. In this example, we have a transaction count of 40, meaning nonces 0 through 39 have been seen. The next transaction's nonce will need to be 40.
+nonce是一个从零开始的计数器，这意味着第一笔交易的nonce值为 0.在这个例子中，我们的交易计数为40，意味着0到39的nonce已经存在。下一笔交易的nonce是40。
 ====
 
-Your wallet will keep track of nonces for each address it manages. It's fairly simple to do that, as long as you are only originating transactions from a single point. Let's say you are writing your own wallet software or some other application that originates transactions. How do you track nonces?
+你的钱包将跟踪其管理的每个地址的nonce。这样做相当简单，只要你只从一个点发起交易即可。假设你正在编写自己的钱包软件或其他一些发起交易的应用程序。你如何跟踪nonces？
 
-When you create a new transaction, you assign the next nonce in the sequence. But until it is confirmed, it will not count toward the +getTransactionCount+ total.
+创建一笔新交易时，将在序列中分配下一个nonce。但在确认之前，它不会计入getTransactionCount总计。
 
 [[get_tx_count_bug]]
 [WARNING]
 ====
-Be careful when using the +getTransactionCount+ function for counting pending transactions, because you might run into some problems if you send a few transactions in a row.
+使用getTransactionCount函数计算待处理的交易时要小心，因为如果连续发送一些交易，可能会遇到一些问题。
 ====
 
-Let's look at an example:
+让我们来看一个例子：
 
 ++++
 <pre data-type="programlisting">
@@ -106,11 +106,11 @@ Let's look at an example:
 </pre>
 ++++
 
-As you can see, the first transaction we sent increased the transaction count to 41, showing the pending transaction. But when we sent three more transactions in quick succession, the +getTransactionCount+ call didn't count them. It only counted one, even though you might expect there to be three pending in the mempool. If we wait a few seconds to allow for network communications to settle down, the +getTransactionCount+ call will return the expected number. But in the interim, while there are more than one transaction pending, it might not help us.
+如你所见，我们发送的第一笔交易将交易计数增加到41，显示待处理的交易。但是当我们快速连续发送三个以上的交易时，getTransactionCount调用没有对它们进行计数。它只计算一个，即使你可能期望在mempool中有三个待处理。如果我们等待几秒钟以允许网络通信稳定下来，则getTransactionCount调用将返回预期的数字。但在此期间，虽然有多笔待处理的交易，但它可能对我们没有帮助。
 
-When you build an application that constructs transactions, it cannot rely on pass:[<span class="keep-together"><code>getTransactionCount</code></span>] for pending transactions. Only when the pending and confirmed counts are equal (all outstanding transactions are confirmed) can you trust the output of +getTransactionCount+ to start your nonce counter. Thereafter, keep track of the nonce in your application until each transaction confirms.
+编写构建交易的应用程序时，它不能依赖getTransactionCount来处理待处理的交易。只有当待处理和已确认的计数相等（所有交易都已确认）时，你才能信任getTransactionCount的输出从而启动你的nonce计数器。此后，跟踪应用程序中的nonce，直到每笔交易被确认。
 
-Parity's JSON RPC interface offers the +parity_nextNonce+ function, which returns the next nonce that should be used in a transaction. The +parity_nextNonce+ function counts nonces correctly, even if you construct several transactions in rapid succession without confirming them:
+Parity的JSON RPC接口提供了parity_nextNonce函数，该函数返回应在交易中使用的下一个nonce。 parity_nextNonce函数正确计算nonce，即使你快速连续构造了几笔交易而没有确认它们：
 
 ++++
 <pre data-type="programlisting">
@@ -126,64 +126,64 @@ $ <strong>curl --data '{"method":"parity_nextNonce", \
 [[parity_curl]]
 [TIP]
 ====
-Parity has a web console for accessing the JSON RPC interface, but here we are using a command-line HTTP client to access it.
+Parity有一个用于访问JSON RPC接口的Web控制台，但在这里我们使用命令行HTTP客户端来访问它。
 ====
 
 [[gaps_nonce]]
-==== Gaps in Nonces, Duplicate Nonces, and Confirmation
+==== Nonces中的缺口，重复Nonces，以及确认
 
-It is important to keep track of nonces if you are creating transactions programmatically, especially if you are doing so from multiple independent processes simultaneously.
+如果以编程方式创建交易，则跟踪nonce非常重要，尤其是如果你同时从多个独立进程执行此操作。
 
-The Ethereum network processes transactions sequentially, based on the nonce. That means that if you transmit a transaction with nonce 0 and then transmit a transaction with nonce 2, the second transaction will not be included in any blocks. It will be stored in the mempool, while the Ethereum network waits for the missing nonce to appear. All nodes will assume that the missing nonce has simply been delayed and that the transaction with nonce 2 was received out of sequence.
+以太坊网络基于nonce顺序处理交易。这意味着如果你使用nonce 0传输一笔交易，然后使用nonce 2传输一笔交易，则第二笔交易将不被包含在任何区块中。它将存储在mempool中，而以太坊网络则等待丢失的nonce出现。所有节点都将假设缺少的nonce只是被推迟了，并且具有nonce 2的交易被不按顺序接收。
 
-If you then transmit a transaction with the missing nonce 1, both transactions (nonces 1 and 2) will be processed and included (if valid, of course). Once you fill the gap, the network can mine the out-of-sequence transaction that it held in the mempool.
+如果你随后使用缺失的nonce 1传输一笔交易，则将处理和包含两笔交易（nonce 1和2）（当然，如果有效）。一旦填补了缺口，网络就可以对它在mempool中保存的无序交易进行挖矿。
 
-What this means is that if you create several transactions in sequence and one of them does not get officially included in any blocks, all the subsequent transactions will be "stuck," waiting for the missing nonce. A transaction can create an inadvertent "gap" in the nonce sequence because it is invalid or has insufficient gas. To get things moving again, you have to transmit a valid transaction with the missing nonce. You should be equally mindful that once a transaction with the "missing" nonce is validated by the network, all the broadcast transactions with subsequent nonces will incrementally become valid; it is not possible to "recall" a transaction!
+这意味着如果你按顺序创建多笔交易并且其中一笔交易未正式包含在任何区块中，则所有后续交易将“卡住”，等待丢失的nonce。一笔交易可以在nonce序列中产生无意的“缺口”，因为它无效或者gas不足。为了让一切重新开始，你必须使用缺失的nonce传输有效的交易。你应该同样注意，一旦网络验证了具有“缺失”的nonce的交易，所有具有后续nonce的广播交易将逐渐变为有效;无法“召回/撤销”交易！
 
-If on the other hand you accidentally duplicate a nonce, for example by transmitting two transactions with the same nonce but different recipients or values, then one of them will be confirmed and one will be rejected. Which one is confirmed will be determined by the sequence in which they arrive at the first validating node that receives them&#x2014;i.e., it will be fairly random.
+另一方面，如果你意外复制了一个nonce，例如通过发送具有相同nonce但接收者或价值不同的两笔交易，则其中一笔将被确认，一笔将被拒绝。哪一笔交易将被确认将由它们到达接收它们的第一个验证节点的顺序确定 - 即，它将是相当随机的。
 
-As you can see, keeping track of nonces is necessary, and if your application doesn't manage that process correctly you will run into problems. Unfortunately, things get even more difficult if you are trying to do this concurrently, as we will see in the next section.
+如你所见，跟踪nonce是必要的，如果你的应用程序无法正确管理该过程，你将遇到问题。不幸的是，如果你尝试同时执行此操作会变得更加困难，我们将在下一节中看到。
 
 [[concurrency]]
-==== Concurrency, Transaction Origination, and Nonces
+==== 并发，交易发起和Nonces
 
-Concurrency is a complex aspect of computer science, and it crops up unexpectedly sometimes, especially in decentralized and distributed real-time systems like Ethereum.
+并发是计算机科学的一个复杂方面，有时会出乎意料地出现，尤其是在像以太坊这样的去中心化和分布式实时系统中。
 
-In simple terms, concurrency is when you have simultaneous computation by multiple independent systems. These can be in the same program (e.g., multithreading), on the same CPU (e.g., multiprocessing), or on different computers (i.e., distributed systems). Ethereum, by definition, is a system that allows concurrency of operations (nodes, clients, DApps) but enforces a singleton state through consensus.
+简单来说，并发是指你可以通过多个独立系统同时进行计算。这些可以在相同的程序（例如，多线程）中，在相同的CPU（例如，多重处理）上，或在不同的计算机（即，分布式系统）上。根据定义，以太坊是一个允许操作（节点，客户端，DApps）并发但通过共识机制强制执行单例状态的系统。
 
-Now, imagine that you have multiple independent wallet applications that are generating transactions from the same address or addresses. One example of such a situation would be an exchange processing withdrawals from the exchange's hot wallet (a wallet whose keys are stored online, in contrast to a cold wallet where the keys are never online). Ideally, you'd want to have more than one computer processing withdrawals, so that it doesn't become a bottleneck or single point of failure. However, this quickly becomes problematic, as having more than one computer producing withdrawals will result in some thorny concurrency problems, not least of which is the selection of nonces. How do multiple computers generating, signing, and broadcasting transactions from the same hot wallet account coordinate?
+现在，假设你有多个独立的钱包应用程序，它们从相同的地址生成交易。这种情况的一个例子是交易所处理从交易所的热钱包（热钱包的密钥在线存储，与冷钱包的密钥从不在线存储相反）的提款。理想情况下，你希望有多台计算机处理提款，因此它不会成为瓶颈或单点故障。然而，这很快就会成为问题，因为有多台计算机产生提款将导致一些棘手的并发问题，其中最重要的是选择nonce。多台计算机如何从同一个热钱包帐户协调生成，签名和广播交易？
 
-You could use a single computer to assign nonces, on a first-come first-served basis to computers signing transactions. However, this computer is now a single point of failure. Worse, if several nonces are assigned and one of them never gets used (because of a failure in the computer processing the transaction with that nonce), all subsequent transactions get stuck.
+你可以使用一台计算机以先到先得的方式将nonce分配给所有计算机来签署交易。但是，这台计算机现在是单点故障。更糟糕的是，如果分配了几个nonce并且其中一个永远不会被使用（由于计算机处理具有该nonce的交易的失败），所有后续交易都会被卡住。
 
-Another approach would be to generate the transactions, but not assign a nonce to them (and therefore leave them unsigned&#x2014;remember that the nonce is an integral part of the transaction data and therefore needs to be included in the digital signature that authenticates the transaction). You could then queue them to a single node that signs them and also keeps track of nonces. Again, though, this would be a choke point in the process: the signing and tracking of nonces is the part of your operation that is likely to become congested under load, whereas the generation of the unsigned transaction is the part you don't really need to parallelize. You would have some concurrency, but it would be lacking in a critical part of the process.
+另一种方法是生成交易，但不为它们分配nonce（因此让它们未签名 - 记住nonce是交易数据的组成部分，因此需要包含在验证交易的数字签名中） 。然后，你可以将这些交易排队到一个签署它们的节点，并跟踪nonces。但是，这又是一个过程中的阻塞点：交易签名和nonces的跟踪是你的操作的一部分，可能会在高负载下变得拥挤，而未签名交易的生成是你不需要真正并行化的部分。你会有一些并发，但这个过程的关键部分却缺乏并发。
 
-In the end, these concurrency problems, on top of the difficulty of tracking account balances and transaction confirmations in independent processes, force most implementations toward avoiding concurrency and creating bottlenecks such as a single process handling all withdrawal transactions in an exchange, or setting up multiple hot wallets that can work completely independently for withdrawals and only need to be intermittently rebalanced.
+最后，除了跟踪独立进程中的帐户余额和交易确认的难度之外，这些并发问题迫使大多数实现避免并发，并且创建瓶颈，例如处理交易所中的所有提款交易的单个进程，或设置多个热钱包可以完全独立地进行提款，只需要间歇性地重新平衡。
 
 [[tx_gas]]
-=== Transaction Gas
+=== 交易Gas
 
-We talked about gas a little in earlier chapters, and we discuss it in more detail in <<gas>>. However, let's cover some basics about the role of the +gasPrice+ and +gasLimit+ components of a transaction.
+我们在前面的章节中谈到了gas，我们在<<gas>>中更详细地讨论了它。但是，让我们介绍一下有关交易的gasPrice和gasLimit组件的作用的一些基础知识。
 
-Gas is the fuel of Ethereum. Gas is not ether&#x2014;it's a separate virtual currency with its own exchange rate against ether. Ethereum uses gas to control the amount of resources that a transaction can use, since it will be processed on thousands of computers around the world. The open-ended (Turing-complete) computation model requires some form of metering in order to avoid denial-of-service attacks or inadvertently resource-devouring transactions.
+gas是以太坊的燃料。gas不是ether - 它是一种独立的虚拟货币，拥有其自身与ether的汇率。以太坊使用gas来控制交易可以使用的资源量，因为它将在全球数千台计算机上处理。开放式（图灵完备）计算模型需要某种形式的计量，以避免拒绝服务攻击或无意中吞噬资源的交易。
 
-Gas is separate from ether in order to protect the system from the volatility that might arise along with rapid changes in the value of ether, and also as a way to manage the important and sensitive ratios between the costs of the various resources that gas pays for (namely, computation, memory, and storage).
+gas与ether分开，以保护系统免受随着ether价值的快速变化而可能出现的波动，并且还作为管理gas支付的各种资源成本之间的重要和敏感比率的方法。 （即计算，内存和存储）。
 
-The +gasPrice+ field in a transaction allows the transaction originator to set the price they are willing to pay in exchange for gas. The price is measured in wei per gas unit. For example, in the sample transaction in <<intro_chapter>> your wallet set the +gasPrice+ to 3 gwei (3 gigawei or 3 billion wei).
+交易中的gasPrice字段允许交易发起人设定他们愿意支付以换取gas的价格。价格以wei每gas单位计量。例如，在<<intro_chapter>>的示例交易中，你的钱包将gasPrice设置为3 gwei（3 gigawei 或 3 billion wei）。
 
 [TIP]
 ====
-The popular site https://ethgasstation.info/[ETH Gas Station] provides information on the current prices of gas and other relevant gas metrics for the Ethereum main network.
+受欢迎的 https://ethgasstation.info/[ETH Gas Station] 提供有关以太坊主网络的当前gas价格和其他相关gas指标的信息。
 ====
 
-Wallets can adjust the +gasPrice+ in transactions they originate to achieve faster confirmation of transactions. The higher the +gasPrice+, the faster the transaction is likely to be confirmed. Conversely, lower-priority transactions can carry a reduced price, resulting in slower confirmation. The minimum value that +gasPrice+ can be set to is zero, which means a fee-free transaction. During periods of low demand for space in a block, such transactions might very well get mined.
+钱包可以在发起的交易中调整gasPrice，以实现更快的交易确认。 gasPrice越高，交易可能越快被确认。相反，优先级较低的交易可以降低价格，导致更慢的确认速度。 gasPrice可以设置的最小值为零，这意味着免费交易。在区块空间需求低的时期，这种交易很可能会被挖矿。
 
 [NOTE]
 ====
-The minimum acceptable +gasPrice+ is zero. That means that wallets can generate completely free transactions. Depending on capacity, these may never be confirmed, but there is nothing in the protocol that prohibits free transactions. You can find several examples of such transactions successfully included on the Ethereum blockchain.
+最低可接受的gasPrice为零。这意味着钱包可以生成完全免费的交易。根据容量，这些可能永远不会得到确认，但协议中没有任何内容禁止免费交易。你可以在以太坊区块链中找到成功包含此类交易的几个示例。
 ====
 
 [[gas_price_suggestion]]
-The web3 interface offers a +gasPrice+ suggestion, by calculating a median price across several blocks (we can use the truffle console or any JavaScript web3 console to do that):
+web3接口提供了gasPrice建议，通过计算几个区块的中位数价格（我们可以使用truffle控制台或任何JavaScript web3控制台来执行此操作）：
 
 ++++
 <pre data-type="programlisting">
@@ -193,7 +193,7 @@ The web3 interface offers a +gasPrice+ suggestion, by calculating a median price
 ++++
 
 [[calc_gas_price]]
-The second important field related to gas is +gasLimit+. In simple terms, +gasLimit+ gives the maximum number of units of gas the transaction originator is willing to buy in order to complete the transaction. For simple payments, meaning transactions that transfer ether from one EOA to another EOA, the gas amount needed is fixed at 21,000 gas units. To calculate how much ether that will cost, you multiply 21,000 by the +gasPrice+ you're willing to pay. For example:
+与gas有关的第二个重要字段是gasLimit。简单来说，gasLimit给出交易发起人愿意购买的最大gas单位数量，以完成交易。对于简单支付，意味着将ether从一个EOA转移到另一个EOA的交易，所需的gas量固定为21,000个gas单位。要计算需要花费多少ether，你需要用你愿意支付的gasPrice乘以21,000。例如：
 
 ++++
 <pre data-type="programlisting">
@@ -202,34 +202,34 @@ The second important field related to gas is +gasLimit+. In simple terms, +gasLi
 </pre>
 ++++
 
-If your transaction's destination address is a contract, then the amount of gas needed can be estimated but cannot be determined with accuracy. That's because a contract can evaluate different conditions that lead to different execution paths, with different total gas costs. The contract may execute only a simple computation or a more complex one, depending on conditions that are outside of your control and cannot be predicted. To demonstrate this, let's look at an example: we can write a smart contract that increments a counter each time it is called and executes a particular loop a number of times equal to the call count. Maybe on the 100th call it gives out a special prize, like a lottery, but needs to do additional computation to calculate the prize. If you call the contract 99 times one thing happens, but on the 100th call something very different happens. The amount of gas you would pay for that depends on how many other transactions have called that function before your transaction is included in a block. Perhaps your estimate is based on being the 99th transaction, but just before your transaction is confirmed someone else calls the contract for the 99th time. Now you're the 100th transaction to call, and the computation effort (and gas cost) is much higher.
+如果你的交易的目的地地址是合约，那么可以估算所需的gas量，但无法准确确定。这是因为合约可以评估导致不同执行路径的不同条件，总的gas成本不同。合约可能只执行简单的计算或更复杂的计算，具体取决于你无法控制且无法预测的条件。为了演示这一点，让我们看一个例子：我们可以编写一个智能合约，每次调用它时都会递增一个计数器，并执行一个特定的循环，其循环次数等于调用次数。也许在第100次调用中，它会像彩票一样给出特殊奖励，但需要进行额外的计算以计算奖金。如果你将合约调用99次只有一件事会发生，但是在第100次调用时会发生一些非常不同的事情。你需要支付的gas数量取决于在你的交易包含在一个区块之前有多少其他交易已经调用该函数。也许你的估计是基于第99次交易，但就在你的交易被确认之前，其他人调用了这个合约，并且是第99次调用。现在你是第100个要调用该函数的交易，计算量（和gas成本）要高得多。
 
-To borrow a common analogy used in Ethereum, you can think of +gasLimit+ as the capacity of the fuel tank in your car (your car is the transaction). You fill the tank with as much gas as you think it will need for the journey (the computation needed to validate your transaction). You can estimate the amount to some degree, but there might be unexpected changes to your journey, such as a diversion (a more complex execution path), that increase fuel consumption.
+借用以太坊中使用的常见类比，你可以将gasLimit视为汽车油箱的容量（你的汽车就是交易）。你可以用你认为旅途所需的燃油（为验证交易所需的计算）填充油箱。你可以在一定程度上估算燃油量，但你的旅程可能会出现意外变化，例如改道（更复杂的执行路径），这会增加燃油消耗。
 
-The analogy to a fuel tank is somewhat misleading, however. It's actually more like a credit account for a gas station company, where you pay after the trip is completed, based on how much gas you actually used. When you transmit your transaction, one of the first validation steps is to check that the account it originated from has enough ether to pay the +gasPrice * gas+ fee. But the amount is not actually deducted from your account until the transaction finishes executing. You are only billed for gas actually consumed by your transaction, but you have to have enough balance for the maximum amount you are willing to pay before you send your transaction.
+然而，与油箱作类比有些误导。它实际上更像是一家加油站公司的信用账户，根据你实际使用的燃油量，你可以在旅行结束后付款。当你传输交易时，最初的验证步骤之一是检查发起的帐户是否有足够的ether支付gasPrice *燃气费。但是，在交易完成执行之前，实际上并未从你的帐户中扣除金额。你只需支付交易实际消耗的燃油费用，但在发送交易之前，你必须有足够的余额支付你愿意支付的最高金额。
 
 [[tx_recipient]]
-=== Transaction Recipient
+=== 交易接收者
 
-The recipient of a transaction is specified in the +to+ field. This contains a 20-byte Ethereum address. The address can be an EOA or a contract address.
+交易的接收者在to字段中指定。这包含一个20字节的以太坊地址。地址可以是EOA或合约地址。
 
-Ethereum does no further validation of this field. Any 20-byte value is considered valid. If the 20-byte value corresponds to an address without a corresponding private key, or without a corresponding contract, the transaction is still valid. Ethereum has no way of knowing whether an address was correctly derived from a public key (and therefore from a private key) in existence.
+以太坊没有进一步验证该字段。任何20字节的值都被认为是有效的。如果20字节的值对应于没有相应私钥或合约的地址，则该交易仍然有效。以太坊无法知道地址是否正确地派生自现有的公钥（因此来源于私钥）。
 
 [WARNING]
 ====
-The Ethereum protocol does not validate recipient addresses in transactions. You can send to an address that has no corresponding private key or contract, thereby "burning" the ether, rendering it forever unspendable. Validation should be done at the user interface level.
+以太坊协议不验证交易中的接收者地址。你可以发送到没有相应私钥或合约的地址，从而“烧掉”ether，使其永远不被花费。验证应在用户接口级别完成。
 ====
 
-Sending a transaction to the wrong address will probably _burn_ the ether sent, rendering it forever inaccessible (unspendable), since most addresses do not have a known private key and therefore no signature can be generated to spend it. It is assumed that validation of the address happens at the user interface level (see <<EIP55>>). In fact, there are a number of valid reasons for burning ether&#x2014;for example, as a disincentive to cheating in payment channels and other smart contracts&#x2014;and since the amount of ether is finite, burning ether effectively distributes the value burned to all ether holders (in proportion to the amount of ether they hold).
+将交易发送到错误的地址可能会烧掉发送的ether，使其永远无法访问（不可花费），因为大多数地址没有已知的私钥，因此无法生成签名来使用它。假设地址验证发生在用户接口级别（参见<<EIP55>>）。实际上，烧掉ether有许多正当理由 - 例如，作为对支付渠道和其他智能合约作弊的抑制因素 - 并且由于ether的数量是有限的，烧掉ether有效地将烧掉的价值分配给所有ether持有者（与他们持有的ether量成比例）。
 
 [[tx_value_data]]
-=== Transaction Value and Data
+=== 交易价值（value）和数据（data）
 
-The main "payload" of a transaction is contained in two fields: +value+ and +data+. Transactions can have both value and data, only value, only data, or neither value nor data. All four combinations are valid.
+交易的主要“有效负载”包含在两个字段中：价值（value）和数据（data）。交易可以同时具有价值和数据，仅具有价值，仅具有数据，或者既不具有价值也不具有数据。所有四种组合都有效。
 
-A transaction with only value is a _payment_. A transaction with only data is an _invocation_. A transaction with both value and data is both a payment and an invocation. A transaction with neither value nor data&#x2014;well that's probably just a waste of gas! But it is still possible.
+仅具有价值的交易是支付。仅包含数据的交易是调用。具有价值和数据的交易既是支付，也是调用。既没有价值也没有数据的交易 - 这可能只是浪费gas！但它仍然有可能。
 
-Let's try all of these combinations. First we'll set the source and destination addresses from our wallet, just to make the demo easier to read:
+让我们尝试所有这些组合。首先，我们将设置钱包中的源地址和目标地址，只是为了让演示更容易阅读：
 
 [source,javascript]
 ----
@@ -237,7 +237,7 @@ src = web3.eth.accounts[0];
 dst = web3.eth.accounts[1];
 ----
 
-Our first transaction contains only a value (payment), and no data payload:
+我们的第一笔交易只包含一个价值（支付），没有数据负载：
 
 [[tx_value_nodata_src]]
 [source,javascript]
@@ -246,14 +246,14 @@ web3.eth.sendTransaction({from: src, to: dst, \
   value: web3.toWei(0.01, "ether"), data: ""});
 ----
 
-Our wallet shows a confirmation screen indicating the value to send, as shown in <<parity_txdemo_value_nodata>>.
+我们的钱包显示一个确认屏幕，指示要发送的价值，如<<parity_txdemo_value_nodata>>中所示。
 
 [[parity_txdemo_value_nodata]]
 .Parity wallet showing a transaction with value, but no data
 image::images/parity_txdemo_value_nodata.png["Parity wallet showing a transaction with value, but no data"]
 
 
-The next example specifies both a value and a data payload:
+下一个示例同时指定价值和数据有效负载：
 
 [[tx_value_data_src]]
 [source,javascript]
@@ -262,13 +262,13 @@ web3.eth.sendTransaction({from: src, to: dst, \
   value: web3.toWei(0.01, "ether"), data: "0x1234"});
 ----
 
-Our wallet shows a confirmation screen indicating the value to send as well as the data payload, as shown in <<parity_txdemo_value_data>>.
+我们的钱包显示一个确认屏幕，指示要发送的价值以及数据有效负载，如<<parity_txdemo_value_data>>中所示。
 
 [[parity_txdemo_value_data]]
 .Parity wallet showing a transaction with value and data
 image::images/parity_txdemo_value_data.png["Parity wallet showing a transaction with value and data"]
 
-The next transaction includes a data payload but specifies a value of zero:
+下一笔交易包括数据有效负载，但指定价值为零：
 
 [[tx_novalue_data_src]]
 [source,javascript]
@@ -276,13 +276,13 @@ The next transaction includes a data payload but specifies a value of zero:
 web3.eth.sendTransaction({from: src, to: dst, value: 0, data: "0x1234"});
 ----
 
-Our wallet shows a confirmation screen indicating the zero value and the data payload, as shown in <<parity_txdemo_novalue_data>>.
+我们的钱包显示一个确认屏幕，显示零价值和数据有效负载，如<<parity_txdemo_novalue_data>>中所示。
 
 [[parity_txdemo_novalue_data]]
 .Parity wallet showing a transaction with no value, only data
 image::images/parity_txdemo_novalue_data.png["Parity wallet showing a transaction with no value, only data"]
 
-Finally, the last transaction includes neither a value to send nor a data payload:
+最后，最后一笔交易既不包含要发送的价值也不包含数据有效负载：
 
 [[tx_novalue_nodata_src]]
 [source,javascript]
@@ -290,37 +290,37 @@ Finally, the last transaction includes neither a value to send nor a data payloa
 web3.eth.sendTransaction({from: src, to: dst, value: 0, data: ""}));
 ----
 
-Our wallet shows a confirmation screen indicating zero value, as shown in <<parity_txdemo_novalue_nodata>>.
+我们的钱包显示一个指示零价值的确认屏幕，如<<parity_txdemo_novalue_nodata>>中所示。
 
 [[parity_txdemo_novalue_nodata]]
 .Parity wallet showing a transaction with no value, and no data
 image::images/parity_txdemo_novalue_nodata.png["Parity wallet showing a transaction with no value, and no data"]
 
 [[value_EOA_contracts]]
-==== Transmitting Value to EOAs and Contracts
+==== 向EOA和合约传输价值（value）
 
-When you construct an Ethereum transaction that contains a value, it is the equivalent of a _payment_. Such transactions behave differently depending on whether the destination address is a contract or not.
+当你构建包含价值的以太坊交易时，它相当于支付。此类交易的行为会有所不同，具体取决于目的地地址是否为合约。
 
-For EOA addresses, or rather for any address that isn't flagged as a contract on the blockchain, Ethereum will record a state change, adding the value you sent to the balance of the address. If the address has not been seen before, it will be added to the client's internal representation of the state and its balance initialized to the value of your payment.
+对于EOA地址，或者更确切地说，对于没有在区块链上标记为合约的任何地址，以太坊将记录状态更改，将你发送的价值添加到地址的余额中。如果该地址以前没人见过，则会将其添加到客户端的状态的内部表示中，并将其余额初始化为你的支付金额。
 
-If the destination address (+to+) is a contract, then the EVM will execute the contract and will attempt to call the function named in the data payload of your transaction. If there is no data in your transaction, the EVM will call a _fallback_ function and, if that function is payable, will execute it to determine what to do next. If there is no fallback function, then the effect of the transaction will be to increase the balance of the contract, exactly like a payment to a wallet.
+如果目标地址（to）是合约，则EVM将执行合约并尝试调用交易的数据有效负载中指定的函数。如果你的交易中没有数据，EVM将调用fallback函数，如果该函数是payable的，将执行它以确定下一步操作。如果没有fallback函数，那么交易的效果将是增加合约的余额，就像对钱包的支付一样。
 
-A contract can reject incoming payments by throwing an exception immediately when a function is called, or as determined by conditions coded in a function. If the function terminates successfully (without an exception), then the contract's state is updated to reflect an increase in the contract's ether balance.
+合约可以通过在调用函数时立即抛出异常或由函数中编码的条件确定来拒绝传入的支付。如果函数成功终止（没有异常），则更新合约的状态以反映合约的ether余额的增加。
 
 [[data_EOA]]
-==== Transmitting a Data Payload to an EOA or Contract
+==== 将数据有效负载传输到EOA或合约
 
-When your transaction contains data, it is most likely addressed to a contract address. That doesn't mean you cannot send a data payload to an EOA&#x2014;that is completely valid in the Ethereum protocol. However, in that case, the interpretation of the data is up to the wallet you use to access the EOA. It is ignored by the Ethereum protocol. Most wallets also ignore any data received in a transaction to an EOA they control. In the future, it is possible that standards may emerge that allow wallets to interpret data the way contracts do, thereby allowing transactions to invoke functions running inside user wallets. The critical difference is that any interpretation of the data payload by an EOA is not subject to Ethereum's consensus rules, unlike a contract execution.
+当你的交易包含数据时，很可能会将其发送到合约地址。这并不意味着你无法将数据有效负载发送到EOA，这在以太坊协议中完全有效。但是，在这种情况下，数据的解释取决于你用于访问EOA的钱包。它被以太坊协议忽略。大多数钱包也会忽略交易中传入到EOA的任何数据。将来，有可能出现允许钱包按照合约的方式解释数据的标准，从而允许交易调用在用户钱包内运行的函数。关键的区别在于，与合约执行不同，EOA对数据有效负载的任何解释都不受以太坊的共识规则的约束。
 
-For now, let's assume your transaction is delivering data to a contract address. In that case, the data will be interpreted by the EVM as a _contract invocation_. Most contracts use this data more specifically as a _function invocation_, calling the named function and passing any encoded arguments to the function.
+现在，让我们假设你的交易正在将数据传输到合约地址。在这种情况下，EVM将数据解释为合约调用。大多数合约更具体地将此数据用作函数调用，调用命名函数并将任何编码参数传递给函数。
 
-The data payload sent to an ABI-compatible contract (which you can assume all contracts are) is a hex-serialized encoding of:
+发送到ABI兼容合约（你可以假设所有合约都是）的数据有效负载是十六进制序列化编码：
 
-A function selector:: The first 4 bytes of the Keccak-256 hash of the function's prototype. This allows the contract to unambiguously identify which function you wish to invoke.
+函数选择器:: 函数原型的Keccak-256哈希的前4个字节。这允许合约明确地标识你要调用的函数。
 
-The function arguments:: The function's arguments, encoded according to the rules for the various elementary types defined in the ABI specification.
+函数参数:: 函数的参数，根据ABI规范中定义的各种基本类型的规则进行编码。
 
-In <<solidity_faucet_example>>, we defined a function for withdrawals:
+在<<solidity_faucet_example>>中，我们为取款定义了一个函数：
 
 [[withdraw_function_src]]
 [source,solidity]
@@ -328,14 +328,14 @@ In <<solidity_faucet_example>>, we defined a function for withdrawals:
 function withdraw(uint withdraw_amount) public {
 ----
 
-The _prototype_ of a function is defined as the string containing the name of the function, followed by the data types of each of its arguments, enclosed in parentheses and separated by commas. The function name here is +withdraw+ and it takes a single argument that is a +uint+ (which is an alias for +uint256+), so the prototype of +withdraw+ would be:
+函数的原型定义为包含函数名称的字符串，后跟每个参数的数据类型，括在括号中并用逗号分隔。这里的函数名是withdraw，它接受一个uint（这是uint256的别名）的参数，所以withdraw的原型是：
 
 [source,solidity]
 ----
 withdraw(uint256)
 ----
 
-Let's calculate the Keccak-256 hash of this string:
+让我们计算一下这个字符串的Keccak-256哈希值：
 
 ++++
 <pre data-type="programlisting">
@@ -344,9 +344,9 @@ Let's calculate the Keccak-256 hash of this string:
 </pre>
 ++++
 
-The first 4 bytes of the hash are +0x2e1a7d4d+. That's our "function selector" value, which will tell the contract which function we want to call.
+哈希的前4个字节是0x2e1a7d4d。这是我们的“函数选择器”的值，它将告诉合约我们想要调用哪个函数。
 
-Next, let's calculate a value to pass as the argument +withdraw_amount+. We want to withdraw 0.01 ether. Let's encode that to a hex-serialized big-endian unsigned 256-bit integer, denominated in wei:
+接下来，让我们计算一个值作为参数withdraw_amount传递。我们想要提取0.01 ether。让我们将其编码为十六进制序列的大端无符号256位整数，以wei计价：
 
 ++++
 <pre data-type="programlisting">
@@ -357,20 +357,20 @@ Next, let's calculate a value to pass as the argument +withdraw_amount+. We want
 </pre>
 ++++
 
-Now, we add the function selector to the amount (padded to 32 bytes):
+现在，我们将函数选择器添加到取款金额中（填充到32个字节）：
 
 ----
 2e1a7d4d000000000000000000000000000000000000000000000000002386f26fc10000
 ----
 
-That's the data payload for our transaction, invoking the +withdraw+ function and requesting 0.01 ether as the +withdraw_amount+.
+这是我们交易的数据有效负载，调用withdraw函数并请求0.01 ether作为withdraw_amount。
 
 [[contract_reg]]
-=== Special Transaction: Contract Creation
+=== 特殊交易：合约创建
 
-One special case that we should mention is a transaction that _creates a new contract_ on the blockchain, deploying it for future use. Contract creation transactions are sent to a special destination address called the _zero address_; the +to+ field in a contract registration transaction contains the address +0x0+. This address represents neither an EOA (there is no corresponding private–public key pair) nor a contract. It can never spend ether or initiate a transaction. It is only used as a destination, with the special meaning "create this contract."
+我们应该提到的一个特殊情况是一种交易，其在区块链上创建新合约并将其部署以供将来使用。合约创建交易被发送到称为零地址（zero address）的特殊目标地址;合同注册交易中的to字段包含地址0x0。该地址既不代表EOA（没有相应的私钥 - 公钥对）也不代表合约。它永远不会花费ether或发起交易。它仅用作目的地，具有“创建此合约”的特殊含义。
 
-While the zero address is intended only for contract creation, it sometimes receives payments from various addresses. There are two explanations for this: either it is by accident, resulting in the loss of ether, or it is an intentional _ether burn_ (deliberately destroying ether by sending it to an address from which it can never be spent). However, if you want to do an intentional ether burn, you should make your intention clear to the network and use the specially designated burn address instead:
+虽然零地址仅用于创建合约，但有时会从各种地址接收支付付款。对此有两种解释：要么是偶然的，导致失去ether，要么是故意的ether燃烧（故意通过将其发送到一个永远不会花费的地址来破坏ether）。但是，如果你想进行有意的ether燃烧，你应该让网络明确你的意图并使用专门指定的燃烧地址：
 
 [[burn_address]]
 ----
@@ -379,12 +379,12 @@ While the zero address is intended only for contract creation, it sometimes rece
 
 [WARNING]
 ====
-Any ether sent to the designated burn address will become unspendable and be lost forever.
+发送到指定燃烧地址的任何ether将变得不可花费并永远丢失。
 ====
 
-A contract creation transaction need only contain a data payload that contains the compiled bytecode which will create the contract. The only effect of this transaction is to create the contract. You can include an ether amount in the +value+ field if you want to set the new contract up with a starting balance, but that is entirely optional. If you send a value (ether) to the contract creation address without a data payload (no contract), then the effect is the same as sending to a burn address&#x2014;there is no contract to credit, so the ether is lost.
+合约创建交易只需要包含一个数据有效负载，其中包含将创建合约的已编译字节码。此交易的唯一效果是创建合约。如果要为新合约设置起始余额，则可以在value（价值）字段中包含ether数量，但这完全是可选的。如果你在没有数据有效负载（无合约）的情况下向合约创建地址发送价值（ether），则效果与发送到燃烧地址相同 - 没有合约被创建，因此ether丢失。
 
-As an example, we can create the _Faucet.sol_ contract used in <<intro_chapter>> by manually creating a transaction to the zero address with the contract in the data payload. The contract needs to be compiled into a bytecode representation. This can be done with the Solidity compiler:
+例如，我们可以通过在数据有效负载中包含合约手动地创建到零地址的交易来创建<<intro_chapter>>中使用的Faucet.sol合约。合约需要编译成字节码表示。这可以使用Solidity编译器完成：
 
 ++++
 <pre data-type="programlisting">
@@ -395,9 +395,9 @@ Binary:
 </pre>
 ++++
 
-The same information can also be obtained from the Remix online compiler.
+也可以从Remix在线编译器获得相同的信息。
 
-Now we can create the transaction:
+现在我们可以创建交易：
 
 ++++
 <pre data-type="programlisting">
@@ -411,15 +411,15 @@ Now we can create the transaction:
 </pre>
 ++++
 
-It is good practice to always specify a +to+ parameter, even in the case of zero-address contract creation, because the cost of accidentally sending your ether to +0x0+ and losing it forever is too great. You should also specify a +gasPrice+ and +gasLimit+.
+最好总是指定一个to参数，即使在零地址合约创建的情况下，因为意外地将ether发送到0x0并永远丢失它的成本太高了。你还应该指定gasPrice和gasLimit。
 
-Once the contract is mined we can see it on the Etherscan block explorer, as shown in <<publish_contract_from_web3>>.
+合约一旦被挖矿，我们就可以在Etherscan区块浏览器上看到它，如<<publish_contract_from_web3>>所示。
 
 [[publish_contract_from_web3]]
 .Etherscan showing the contract successfully mined
 image::images/contract_published.png["Etherscan showing the contract successfully mined"]
 
-We can look at the receipt of the transaction to get information about the contract:
+我们可以查看交易收据（receipt）以获取有关合约的信息：
 
 ++++
 <pre data-type="programlisting">
@@ -445,7 +445,7 @@ We can look at the receipt of the transaction to get information about the contr
 </pre>
 ++++
 
-This include the address of the contract, which we can use to send funds to and receive funds from the contract as shown in the previous section:
+这包括合约地址，我们可以使用该地址向合约发送资金或数据，如上一节所示：
 
 ++++
 <pre data-type="programlisting">
@@ -462,7 +462,7 @@ This include the address of the contract, which we can use to send funds to and 
 </pre>
 ++++
 
-After a while, both transactions are visible on Etherscan, as shown in <<publish_contract_transactions>>.
+过了一会儿，两笔交易都在Etherscan上可见，如<<publish_contract_transactions>>所示。
 
 [[publish_contract_transactions]]
 .Etherscan showing the transactions for sending and receiving funds
@@ -470,34 +470,34 @@ image::images/published_contract_transactions.png["Etherscan showing the transac
 
 
 [[digital_sign]]
-=== Digital Signatures
+=== 数字签名
 
-((("transactions", "digital signatures and")))So far, we have not delved into any detail about digital signatures. In this section, we look at how digital signatures work and how they can be used to present proof of ownership of a private key without revealing that private key.
+到目前为止，我们还没有深入研究有关数字签名的任何细节。在本节中，我们将了解数字签名的工作原理以及如何在不泄露私钥的情况下使用它们来呈现私钥的所有权证明。
 
 [[ecdsa]]
-==== The Elliptic Curve Digital Signature Algorithm
+==== 椭圆曲线数字签名算法
 
-((("digital signatures", "algorithm used")))((("Elliptic Curve Digital Signature Algorithm (ECDSA)")))The digital signature algorithm used in Ethereum is the _Elliptic Curve Digital Signature Algorithm_ (ECDSA). It's based on elliptic curve private–public key pairs, as described in <<elliptic_curve>>.
+以太坊中使用的数字签名算法是椭圆曲线数字签名算法（Elliptic Curve Digital Signature Algorithm，ECDSA）。它基于椭圆曲线私有 - 公共密钥对，如<<elliptic_curve>>中所述。
 
-((("digital signatures", "purposes of")))A digital signature serves three purposes in Ethereum (see the following sidebar). First, the signature proves that the owner of the private key, who is by implication the owner of an Ethereum account, has _authorized_ the spending of ether, or execution of a contract. Secondly, it guarantees _non-repudiation_: the proof of authorization is undeniable. Thirdly, the signature proves that the transaction data has not been and _cannot be modified_ by anyone after the transaction has been signed.
+数字签名在以太坊中有三个用途（参见下面的侧栏）。首先，签名证明私钥的所有者（其暗示是以太坊账户的所有者）已授权ether的支出或合约的执行。其次，它保证不可否认性：授权证明是不可否认的。第三，签名证明交易数据在交易被签名后未被任何人修改过。
 
 [[digital_signature_definition]]
-.Wikipedia's Definition of a Digital Signature
+.维基百科对数字签名的定义
 ****
-((("digital signatures", "defined")))A _digital signature_ is a mathematical scheme for presenting the authenticity of digital messages or documents. A valid digital signature gives a recipient reason to believe that the message was created by a known sender (authentication), that the sender cannot deny having sent the message (non-repudiation), and that the message was not altered in transit (integrity).
+数字签名是用于呈现数字消息或文档的真实性的数学方案。有效的数字签名使接收者有理由相信该消息是由已知发送者（身份验证）创建的，发送者不能否认发送过消息（不可否认），并且消息在传输过程中未被更改（完整性）。
 
 _Source: https://en.wikipedia.org/wiki/Digital_signature_
 ****
 
 [[digital_sign_work]]
-==== How Digital Signatures Work
+==== 数字签名的工作原理
 
-((("digital signatures", "how they work")))A digital signature is a mathematical scheme that consists of two parts. The first part is an algorithm for creating a signature, using a private key (the signing key), from a message (which in our case is the transaction). The second part is an algorithm that allows anyone to verify the signature by only using the message and a public key.
+数字签名是一种由两部分组成的数学方案。第一部分是使用私钥（签名密钥）从消息（在我们的例子中是交易）中创建签名的算法。第二部分是一种算法，允许任何人仅使用消息和公钥来验证签名。
 
 [[digital_sign_create]]
-===== Creating a digital signature
+===== 创建数字签名
 
-In Ethereum's implementation of ECDSA, the "message" being signed is the transaction, or more accurately, the Keccak-256 hash of the RLP-encoded data from the transaction. The signing key is the EOA's private key. The result is the signature:
+在以太坊的ECDSA实现中，被签名的“消息”是交易，或者更确切地说，是来自交易的RLP编码数据的Keccak-256哈希。签名密钥是EOA的私钥。结果是签名：
 
 [latexmath]
 ++++
@@ -506,16 +506,16 @@ In Ethereum's implementation of ECDSA, the "message" being signed is the transac
 \end{equation}
 ++++
 
-where:
+其中：
 
-* _k_ is the signing private key.
-* _m_ is the RLP-encoded transaction.
-* _F_~_keccak256_~ is the Keccak-256 hash function.
-* _F_~_sig_~ is the signing algorithm.
-* _Sig_ is the resulting signature.
+* _k_ 是签名私钥。
+* _m_ 是RLP编码的交易。
+* _F_~_keccak256_~ 是Keccak-256哈希函数。
+* _F_~_sig_~ 是签名算法。
+* _Sig_ 是由此产生的签名。
 
 [[sign_function]]
-The function _F_~_sig_~ produces a signature __Sig__ that is composed of two values, commonly referred to as _r_ and _s_:
+函数 _F_~_sig_~ 产生一个由两个值组成的签名Sig，通常称为r和s：
 
 [latexmath]
 ++++
@@ -525,27 +525,27 @@ The function _F_~_sig_~ produces a signature __Sig__ that is composed of two val
 ++++
 
 [[verify_sign]]
-==== Verifying the Signature
+==== 验证签名
 
-((("digital signatures", "verifying")))To verify the signature, one must have the signature (_r_ and _s_), the serialized transaction, and the public key that corresponds to the private key used to create the signature. Essentially, verification of a signature means "only the owner of the private key that generated this public key could have produced this signature on this transaction."
+要验证签名，必须具有签名（r和s），序列化交易以及与用于创建签名的私钥对应的公钥。从本质上讲，验证签名意味着“只有生成此公钥的私钥的所有者才能在此交易中生成此签名”。
 
-The signature verification algorithm takes the message (i.e., a hash of the transaction for our usage), the signer's public key, and the signature (_r_ and _s_ values), and returns +true+ if the signature is valid for this message and public key.
+签名验证算法获取消息（即，我们使用的交易的哈希），签名者的公钥和签名（r和s值），并且如果签名对该消息和公钥有效则返回true。
 
 [[ecdsa_math]]
-==== ECDSA Math
+==== ECDSA数学
 
-((("Elliptic Curve Digital Signature Algorithm (ECDSA)")))As mentioned previously, signatures are created by a mathematical function _F_~_sig_~ that produces a signature composed of two values, _r_ and _s_. In this section we look at the function _F_~_sig_~ in more detail.
+如前所述，签名由数学函数 _F_~_sig_~ 创建，该函数生成由两个值r和s组成的签名。在本节中，我们将更详细地介绍函数 _F_~_sig_~ 。
 
-((("public and private keys", "key pairs", "ephemeral")))The signature algorithm first generates an _ephemeral_ (temporary) private key in a cryptographically secure way. This temporary key is used in the calculation of the _r_ and _s_ values to ensure that the sender's actual private key can't be calculated by attackers watching signed transactions on the Ethereum network.
+签名算法首先以加密安全的方式生成转瞬即逝的（临时）私钥。此临时密钥用于计算r和s值，以确保攻击者无法在以太坊网络上观看已签名的交易来计算发送者的实际私钥。
 
-As we know from <<pubkey>>, the ephemeral private key is used to derive the corresponding (ephemeral) public key, so we have:
+正如我们从<<pubkey>>所知，短暂的私钥用于派生相应的（短暂的）公钥，因此我们有：
 
-* A cryptographically secure random number _q_, which is used as the ephemeral private key
-* The corresponding ephemeral public key _Q_, generated from _q_ and the elliptic curve generator point _G_
+* 加密安全随机数q，作为短暂私钥
+* 相应的短暂公钥Q，由q和椭圆曲线生成点G生成
 
-The _r_ value of the digital signature is then the _x_ coordinate of the ephemeral public key _Q_.
+然后，数字签名的r值是短暂公钥Q的x坐标。
 
-From there, the algorithm calculates the _s_ value of the signature, such that:
+从那里，算法计算签名的s值，这样：
 
 ++++
 <ul class="simplelist">
@@ -553,65 +553,64 @@ From there, the algorithm calculates the _s_ value of the signature, such that:
 </ul>
 ++++
 
-where:
+其中：
 
-* _q_ is the ephemeral private key.
-* _r_ is the _x_ coordinate of the ephemeral public key.
-* _k_ is the signing (EOA owner's) private key.
-* _m_ is the transaction data.
-* _p_ is the prime order of the elliptic curve.
+* _q_ 是短暂的私钥。
+* _r_ 是短暂公钥的x坐标。
+* _k_ 是签名（EOA所有者）私钥。
+* _m_ 是交易数据。
+* _p_ 是椭圆曲线的素数阶。
 
-Verification is the inverse of the signature generation function, using the _r_ and _s_ values and the sender's public key to calculate a value _Q_, which is a point on the elliptic curve (the ephemeral public key used in signature creation). The steps are as follows:
+验证是签名生成函数的反转，使用r和s值以及发送者的公钥来计算值Q，该值是椭圆曲线上的一个点（签名创建中使用的短暂公钥）。步骤如下：
 
-1. Check all inputs are correctly formed
-2. Calculate _w_ = __s__^-1^ _mod p_
-3. Calculate _u~1~_ = __Keccak256__(__m__) * _w_ _mod p_
-4. Calculate _u~2~_ = _r_ * _w_ _mod p_
-5. Finally, calculate the point on the elliptic curve _Q_ &#8801; _u~1~ * _G_ + _u~2~_ * _K_  {nbsp} {nbsp} (_mod p_)
+1. 检查所有输入的结构是否正确
+2. 计算 _w_ = __s__^-1^ _mod p_
+3. 计算 _u~1~_ = __Keccak256__(__m__) * _w_ _mod p_
+4. 计算 _u~2~_ = _r_ * _w_ _mod p_
+5. 最后，计算椭圆曲线上的点 _Q_ &#8801; _u~1~ * _G_ + _u~2~_ * _K_  {nbsp} {nbsp} (_mod p_)
 
-where:
+其中：
 
-* _r_ and _s_ are the signature values
-* _K_ is the signer's (EOA owner's) public key
-* _m_ is the transaction data that was signed
-* _G_ is the elliptic curve generator point
-* _p_ is the prime order of the elliptic curve
+* _r_ 和 _s_ 是签名值
+* _K_ 是签名者（EOA所有者的）公钥
+* _m_ 是已签名的交易数据
+* _G_ 是椭圆曲线生成点
+* _p_ 是椭圆曲线的素数阶
 
-If the _x_ coordinate of the calculated point _Q_ is equal to _r_, then the verifier can conclude that the signature is valid.
+如果计算的点Q的x坐标等于r，则验证者可以断定签名是有效的。
 
-Note that in verifying the signature, the private key is neither known nor revealed.
+请注意，在验证签名时，私钥既不知道也不被透露。
 
 [TIP]
 ====
-ECDSA is necessarily a fairly complicated piece of math; a full explanation is beyond the scope of this book. A number of great guides online take you through it step by step: search for "ECDSA explained" or try this one: http://bit.ly/2r0HhGB[].
+ECDSA必然是一个相当复杂的数学问题;完整的解释超出了本书的范围。许多优秀的在线指南将一步一步带你浏览：搜索“ECDSA explained”或尝试以下内容： http://bit.ly/2r0HhGB[] 。
 ====
 
 [[tx_sign]]
-==== Transaction Signing in Practice
+==== 交易签名实践
 
-To produce a valid transaction, the originator must digitally sign the message, using the Elliptic Curve Digital Signature Algorithm. When we say "sign the transaction" we actually mean "sign the Keccak-256 hash of the RLP-serialized transaction data." The signature is applied to the hash of the transaction data, not the transaction itself.
+为了产生有效的交易，发起者必须使用椭圆曲线数字签名算法对消息进行数字签名。当我们说“签署交易”时，我们实际上是指“签署RLP序列化交易数据的Keccak-256哈希”。签名应用于交易数据的哈希，而不是交易本身。
+	
+要在以太坊签署交易，发起人必须：
 
-To sign a transaction in Ethereum, the originator must:
+1. 创建一个交易数据结构，包含九个字段： +nonce+, +gasPrice+, +gasLimit+, +to+, +value+, +data+, +chainID+, +0+, +0+.
+2. 生成交易数据结构的RLP编码的序列化消息。
+3. 计算此序列化消息的Keccak-256哈希值。
+4. 计算ECDSA签名，使用原始EOA的私钥对哈希进行签名。
+5. 将ECDSA签名的计算v，r和s值附加（追加）到交易。
 
-1. Create a transaction data structure, containing nine fields: +nonce+, +gasPrice+, +gasLimit+, +to+, +value+, +data+, +chainID+, +0+, +0+.
-2. Produce an RLP-encoded serialized message of the transaction data structure.
-3. Compute the Keccak-256 hash of this serialized message.
-4. Compute the ECDSA signature, signing the hash with the originating EOA's private key.
-5. Append the ECDSA signature's computed +v+, +r+, and +s+ values to the transaction.
-
-The special signature variable +v+ indicates two things: the chain ID and the recovery identifier to help the +ECDSArecover+ function check the signature. It is calculated as either one of 27 or 28, or as the chain ID doubled plus 35 or 36. For more information on the chain ID, see <<raw_tx_eip155>>. The recovery identifier (27 or 28 in the "old-style" signatures, or 35 or 36 in the full Spurious Dragon&#x2013;style transactions) is used to indicate the parity of the +y+ component of the public key (see <<sign_prefix>> for more details).
-
+特殊签名变量v表示两件事：链ID和恢复标识符，以帮助ECDSArecover函数检查签名。它计算为27或28中的一个，或链ID加倍加35或36.有关链ID的更多信息，请参阅<<raw_tx_eip155>>。恢复标识符（“旧式”签名中的27或28，或完整的Spurious Dragon风格交易中的35或36）用于表示公钥的y部分的奇偶性（请参阅<<sign_prefix>>更多细节）。
 
 [NOTE]
 ====
-At block #2,675,000 Ethereum implemented the "Spurious Dragon" hard fork, which, among other changes, introduced a new signing scheme that includes transaction replay protection (preventing transactions meant for one network being replayed on others). This new signing scheme is specified in EIP-155. This change affects the form of the transaction and its signature, so attention must be paid to the first of the three signature variables (i.e., +v+), which takes one of two forms and indicates the data fields included in the transaction message being hashed.
+在区块＃2,675,000，以太坊实施了“Spurious Dragon”硬分叉，除了其他变化外，还引入了一种新的签名方案，其中包括交易重放保护（防止一个网络的交易在其他网络上被重放）。这种新的签名方案在EIP-155中规定。此更改会影响交易及其签名的形式，因此必须注意三个签名变量中的第一个（即v），它采用两种形式中的一种，并表示被包含在被哈希的交易消息中的字段。
 ====
 
 
 [[raw_tx]]
-==== Raw Transaction Creation and Signing
+==== 原始交易的创建和签名
 
-In this section we'll create a raw transaction and sign it, using the +ethereumjs-tx+ library. This demonstrates the functions that would normally be used inside a wallet, or an application that signs transactions on behalf of a user. The source code for this example is in the file __raw_tx_demo.js__ in the book's https://github.com/ethereumbook/ethereumbook/blob/develop/code/web3js/raw_tx/raw_tx_demo.js[GitHub repository]:
+在本节中，我们将使用ethereumjs-tx库创建一笔原始交易并对其进行签名。这演示了通常在钱包中使用的功能，或代表用户签署交易的应用程序。此示例的源代码位于本书的 https://github.com/ethereumbook/ethereumbook/blob/develop/code/web3js/raw_tx/raw_tx_demo.js[GitHub repository] 中的raw_tx_demo.js文件中：
 
 [[raw_tx_demo_source]]
 [source,javascript]
@@ -620,7 +619,7 @@ include::code/web3js/raw_tx/raw_tx_demo.js[]
 ----
 
 [[raw_tx_demo_run]]
-Running the example code produces the following results:
+运行示例代码会产生以下结果：
 
 ++++
 <pre data-type="programlisting">
@@ -632,14 +631,13 @@ Signed Raw Transaction: 0xf866808609184e72a0008303000094b0920c523d582040f2bcb1..
 ++++
 
 [[raw_tx_eip155]]
-==== Raw Transaction Creation with EIP-155
+==== 使用EIP-155创建原始交易
 
-The EIP-155 "Simple Replay Attack Protection" standard specifies a replay-attack-protected transaction encoding, which includes a _chain identifier_ inside the transaction data, prior to signing. This ensures that transactions created for one blockchain (e.g., the Ethereum main network) are invalid on another blockchain (e.g., Ethereum Classic or the Ropsten test network). Therefore, transactions broadcast on one network cannot be _replayed_ on another, hence the name of the standard.
+EIP-155“简单重放攻击保护”标准规定了重放攻击保护的交易编码，其在签名之前包括交易数据内的链标识符。这确保了为一个区块链（例如，以太坊主网络）创建的交易在另一个区块链（例如，以太坊经典Ethereum Classic或Ropsten测试网络）上是无效的。因此，在一个网络上广播的交易不能在另一个网络上重播（重放）。
 
-EIP-155 adds three fields to the main six fields of the transaction data structure, namely the chain identifier, +0+, and +0+. These three fields are added to the transaction data _before it is encoded and hashed_. They therefore change the transaction's hash, to which the signature is later applied. By including the chain identifier in the data being signed, the transaction signature prevents any changes, as the signature is invalidated if the chain identifier is modified. Therefore, EIP-155 makes it impossible for a transaction to be replayed on another chain, because the signature's validity depends on the chain identifier.
+EIP-155在交易数据结构的主要六个字段中添加三个字段，即链标识符，0，0.这三个字段在被编码和哈希之前添加到交易数据中。因此，它们更改交易的哈希值，稍后将应用到签名。通过在被签名的数据中包含链标识符，交易签名可以防止任何更改，因为如果链标识符被修改，则签名无效。因此，EIP-155使得交易不可能在另一条链上重放，因为签名的有效性取决于链标识符。
 
-
-The chain identifier field takes a value according to the network the transaction is meant for, as outlined in <<chain_id_table>>.
+链标识符字段根据交易所针对的网络获取值，如<<chain_id_table>>所述
 
 [[chain_id_table]]
 .Chain identifiers
@@ -658,24 +656,24 @@ The chain identifier field takes a value according to the network the transactio
 | Geth private testnets | 1337
 |======
 
-The resulting transaction structure is RLP-encoded, hashed, and signed. The signature algorithm is modified slightly to encode the chain identifier in the +v+ prefix too.
+生成的交易结构经过RLP编码，哈希和签名。略微修改签名算法以对v前缀中的链标识符进行编码。
 
-For more details, see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md[the EIP-155 specification].
+有关更多详细信息，请参阅 https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md[the EIP-155 specification].
 
 [[sign_prefix]]
-=== The Signature Prefix Value (v) and Public Key Recovery
+=== 签名前缀值(v)和公钥恢复
 
-As mentioned in <<tx_struct>>, the transaction message doesn't include a "from" field. That's because the originator's public key can be computed directly from the ECDSA signature. Once you have the public key, you can compute the address easily. The process of recovering the signer's public key is called _public key recovery_.
+如<<tx_struct>>中所述，交易消息不包含“from”字段。这是因为发起人的公钥可以直接从ECDSA签名中计算出来。获得公钥后，你可以轻松计算出地址。恢复签名者公钥的过程称为公钥恢复。
 
-Given the values +r+ and +s+ that were computed in <<ecdsa_math>>, we can compute two possible public keys.
+给定在 <<ecdsa_math>> 中计算的值r和s，我们可以计算两个可能的公钥。
 
-First, we compute two elliptic curve points, _R_ and __R__^__'__^, from the _x_ coordinate +r+ value that is in the signature. There are two points because the elliptic curve is symmetric across the x-axis, so that for any value +x+ there are two possible values that fit the curve, one on each side of the x-axis.
+首先，我们从签名中的x坐标r值计算两个椭圆曲线点R和R'。有两个点是因为椭圆曲线在x轴上是对称的，因此对于任何值x，都有两个可能的值适合曲线，每一个在x轴的每一侧。
 
-From +r+ we also calculate __r__^-1^, which is the multiplicative inverse of +r+.
+从r我们还计算r-1【校正】，它是r的乘法逆矩阵。
 
-Finally, we calculate _z_, which is the _n_ lowest bits of the message hash, where _n_ is the order of the elliptic curve.
+最后，我们计算z，它是消息哈希的n个最低位，其中n是椭圆曲线的阶数。
 
-The two possible public keys are then:
+这两个可能的公钥是:
 
 ++++
 <ul class="simplelist">
@@ -683,7 +681,7 @@ The two possible public keys are then:
 </ul>
 ++++
 
-and:
+以及
 
 ++++
 <ul class="simplelist">
@@ -691,66 +689,66 @@ and:
 </ul>
 ++++
 
-where:
+其中：
 
-* __K__~1~ and __K__~2~ are the two possibilities for the signer's public key.
-* __r__^-1^ is the multiplicative inverse of the signature's +r+ value.
-* _s_ is the signature's +s+ value.
-* __R__ and __R__^'^ are the two possibilities for the ephemeral public key _Q_.
-* _z_ is the __n__-lowest bits of the message hash.
-* _G_ is the elliptic curve generator point.
+* __K__~1~ and __K__~2~ 是签名者公钥的两个可能值。
+* __r__^-1^ 是签名r值的乘法逆矩阵。
+* _s_ 是签名的值。
+* __R__ 和 __R__^'^ 是短暂公钥Q的两种可能性。
+* _z_ 是消息哈希的n个最低位。
+* _G_ 是椭圆曲线生成点。
 
-To make things more efficient, the transaction signature includes a prefix value +v+, which tells us which of the two possible _R_ values is the ephemeral public key. If +v+ is even, then _R_ is the correct value. If +v+ is odd, then it is __R__^'^. That way, we need to calculate only one value for _R_ and only one value for _K_.
+为了提高效率，交易签名包括前缀值v，它告诉我们两个可能的R值中的哪一个是短暂的公钥。如果v是偶数，则R是正确的值。如果v是奇数，则R'是正确的值。这样，我们只需要计算R的一个值以及K仅有的一个值。
 
 [[offline_sign]]
-=== Separating Signing and Transmission (Offline Signing)
+=== 分离签名和传输(离线签名)
 
-Once a transaction is signed, it is ready to transmit to the Ethereum network. The three steps of creating, signing, and broadcasting a transaction normally happen as a single operation, for example using +web3.eth.sendTransaction+. However, as you saw in <<raw_tx>>, you can create and sign the transaction in two separate steps. Once you have a signed transaction, you can then transmit it using +web3.eth.sendSignedTransaction+, which takes a hex-encoded and signed transaction and transmits it on the Ethereum network.
+交易被签名后，即可传输到以太坊网络。创建，签名和广播交易的三个步骤通常作为单个操作发生，例如使用web3.eth.sendTransaction。但是，正如你在<<raw_tx>>中看到的那样，你可以通过两个单独的步骤创建和签署交易。获得签名交易后，你可以使用web3.eth.sendSignedTransaction传输它，该函数以十六进制编码并签名的交易作为参数，并在以太坊网络上传输交易。
 
-Why would you want to separate the signing and transmission of transactions? The most common reason is security. The computer that signs a transaction must have unlocked private keys loaded in memory. The computer that does the transmitting must be connected to the internet (and be running an Ethereum client). If these two functions are on one computer, then you have private keys on an online system, which is quite dangerous. Separating the functions of signing and transmitting and performing them on different machines (on an offline and an online device, respectively) is called _offline signing_ and is a common security practice.
+你为什么要分开交易的签名和传输？最常见的原因是安全性。签署交易的计算机必须具有加载在内存中的未锁定私钥。进行传输的计算机必须连接到互联网（并运行以太坊客户端）。如果这两个功能在一台计算机上，那么你在在线系统上有私钥，这非常危险。分离签名和传输的功能，并在不同的机器上（分别在离线和在线设备上）执行它们，这被称为离线签名，并且是常见的安全实践。
 
-<<offline_signing>> shows the process:
+<<offline_signing>> 显示了以下过程：
 
-1. Create an unsigned transaction on the online computer where the current state of the account, notably the current nonce and funds available, can be retrieved.
-2. Transfer the unsigned transaction to an "air-gapped" offline device for transaction signing, e.g. via a QR code or USB flash drive.
-3. Transmit the signed transaction (back) to an online device for broadcast on the Ethereum blockchain, e.g. via QR code or USB flash drive.
+1. 在在线计算机上创建一个未签名的交易，其中可以检索帐户的当前状态，特别是当前的nonce和可用资金。
+2. 将未签名的交易转移到用于交易签名的“气隙的（air-gapped）”离线设备，例如，通过二维码或USB闪存盘。
+3. 将签名的交易发送回在线设备，以便在以太坊区块链上进行广播，例如，通过二维码或USB闪存盘。
 
 [[offline_signing]]
 .Offline signing of Ethereum transactions
 image::images/offline_signing.png["Offline signing of Ethereum transactions"]
 
-Depending on the level of security you need, your "offline signing" computer can have varying degrees of separation from the online computer, ranging from an isolated and firewalled subnet (online but segregated) to a completely offline system known as an _air-gapped_ system. In an air-gapped system there is no network connectivity at all&#x2014;the computer is separated from the online environment by a gap of "air." To sign transactions you transfer them to and from the air-gapped computer using data storage media or (better) a webcam and QR code. Of course, this means you must manually transfer every transaction you want signed, and this doesn't scale.
+根据你所需的安全级别，你的“离线签名”计算机可能与在线计算机有不同程度的分离，从孤立和防火墙子网（在线但隔离）到称为气隙系统的完全脱机系统。在气隙系统中根本没有网络连接 - 计算机与在线环境之间存在“空中”差距。要对交易进行签名，你可以使用数据存储介质或（更好）网络摄像头和二维码将其传输到气隙计算机或从气隙计算机传输出来。当然，这意味着你必须手动传输要签名的每笔交易，并且这不能扩展。
 
-While not many environments can utilize a fully air-gapped system, even a small degree of isolation has significant security benefits. For example, an isolated subnet with a firewall that only allows a message-queue protocol through can offer a much-reduced attack surface and much higher security than signing on the online system. Many companies use a protocol such as ZeroMQ (0MQ) for this purpose. With a setup like that, transactions are serialized and queued for signing. The queuing protocol transmits the serialized message, in a way similar to a TCP socket, to the signing computer. The signing computer reads the serialized transactions from the queue (carefully), applies a signature with the appropriate key, and places them on an outgoing queue. The outgoing queue transmits the signed transactions to a computer with an Ethereum client that dequeues them and transmits them.
+虽然没有多少环境可以使用完全气隙系统，但即使是很小程度的隔离也具有显著的安全性优势。例如，具有仅允许消息队列协议通过的防火墙的隔离子网可以提供大大减少的攻击面，并且比在线系统上签名具有更高的安全性。许多公司为此目的使用ZeroMQ（0MQ）等协议。通过这样的设置，交易被序列化并排队等待签名。队列协议以类似于TCP套接字的方式将序列化消息发送到签名计算机。签名计算机从队列中读取序列化交易（小心地），使用适当的密钥应用签名，并将它们放在传出队列中。传出队列将签名的交易传输到具有以太坊客户端的计算机，该客户端将它们出列并发送它们。
 
 [[tx_propagation]]
-=== Transaction Propagation
+=== 交易传播
 
-The Ethereum network uses a "flood routing" protocol. Each Ethereum client acts as a _node_ in a _peer-to-peer (P2P)_ network, which (ideally) forms a _mesh_ network. No network node is special: they all act as equal peers. We will use the term "node" to refer to an Ethereum client that is connected to and participates in the P2P network.
+以太坊网络使用“flood routing”协议。每个以太坊客户端充当对等（P2P）网络中的节点，其（理想地）形成网状网络。没有网络节点是特殊的：它们都充当平等对等体。我们将使用术语“节点（node）”来指代连接到并参与对等网络的以太坊客户端。
 
-Transaction propagation starts with the originating Ethereum node creating (or receiving from offline) a signed transaction. The transaction is validated and then transmitted to all the other Ethereum nodes that are _directly_ connected to the originating node. On average, each Ethereum node maintains connections to at least 13 other nodes, called its _neighbors_. Each neighbor node validates the transaction as soon as they receive it. If they agree that it is valid, they store a copy and propagate it to all their neighbors (except the one it came from). As a result, the transaction ripples outwards from the originating node, _flooding_ across the network, until all nodes in the network have a copy of the transaction. Nodes can filter the messages they propagate, but the default is to propagate all valid transaction messages they receive.
+交易传播从始发的以太坊节点创建（或从离线接收）签名的交易开始。验证交易，然后将其传输到直接连接到始发节点的所有其他以太坊节点。平均而言，每个以太坊节点都保持与至少13个其他节点（称为其邻居）的连接。每个邻居节点在收到交易后立即对其进行验证。如果它们同意它是有效的，它们会存储一份副本并将其传播给所有邻居（除了它来自的邻居）。结果，交易从始发节点向外波动，像洪水一样充溢在网络中，直到网络中的所有节点都具有交易的副本。节点可以过滤它们传播的消息，但默认情况下是传播它们收到的所有有效交易消息。
 
-Within just a few seconds, an Ethereum transaction propagates to all the Ethereum nodes around the globe. From the perspective of each node, it is not possible to discern the origin of the transaction. The neighbor that sent it to the node may be the originator of the transaction or may have received it from one of its neighbors. To be able to track the origins of transactions, or interfere with propagation, an attacker would have to control a significant percentage of all nodes. This is part of the security and privacy design of P2P networks, especially as applied to blockchain networks.
+在几秒钟内，以太坊交易就会传播到全球所有以太坊节点。从每个节点的角度来看，不可能辨别交易的起源。将这笔交易发送到节点的邻居可能是交易的发起者，或者可能是从其邻居之一接收到了这笔交易。为了能够跟踪交易的起源或干扰传播，攻击者必须控制所有节点的很大一部分。这是P2P网络的安全和隐私设计的一部分，特别是应用于区块链网络。
 
 [[chain_record]]
-=== Recording on the Blockchain
+=== 记录在区块链上
 
-While all the nodes in Ethereum are equal peers, some of them are operated by _miners_ and are feeding transactions and blocks to _mining farms_, which are computers with high-performance graphics processing units (GPUs). The mining computers add transactions to a candidate block and attempt to find a _proof of work_ that makes the candidate block valid. We will discuss this in more detail in <<consensus>>.
+虽然以太坊中的所有节点都是相同的对等节点，但其中一些节点是由矿工操作的，并且正在向矿场提供交易和区块，矿场是具有高性能图形处理单元（GPU）的计算机。矿工计算机将交易添加到候选区块并尝试找到使候选区块有效的工作量证明。我们将在<<consensus>>中更详细地讨论这个问题。
 
-Without going into too much detail, valid transactions will eventually be included in a block of transactions and, thus, recorded in the Ethereum blockchain. Once mined into a block, transactions also modify the state of the Ethereum singleton, either by modifying the balance of an account (in the case of a simple payment) or by invoking contracts that change their internal state. These changes are recorded alongside the transaction, in the form of a transaction _receipt_, which may also include _events_. We will examine all this in much more detail in <<evm_chapter>>.
+在不进入太多细节的情况下，有效交易最终将被包含在交易的一个区块中，并因此记录在以太坊区块链中。一旦开采成区块，交易也会通过修改账户余额（在简单支付的情况下）或通过调用改变其内部状态的合约来修改以太坊单例的状态。这些变化以交易收据的形式与交易一起记录，交易收据也可能包括事件event。我们将在<<evm_chapter>>中更详细地研究所有这些。
 
-A transaction that has completed its journey from creation through signing by an EOA, propagation, and finally mining has changed the state of the singleton and left an indelible mark on the blockchain.
+交易已完成从创建到被EOA签字，传播和最终挖矿的过程，改变了以太坊单例的状态，并在区块链上留下了不可磨灭的印记。
 
-=== Multiple-Signature (Multisig) Transactions
+=== 多重签名（Multisig）交易
 
-If you are familiar with Bitcoin's scripting capabilities, you know that it is possible to create a Bitcoin multisig account which can only spend funds when multiple parties sign the transaction (e.g., 2 of 2 or 3 of 4 signatures). Ethereum's basic EOA value transactions have no provisions for multiple signatures; however, arbitrary signing restrictions can be enforced by smart contracts with any conditions you can think of, to handle the transfer of ether and tokens alike.
+如果你熟悉比特币的脚本功能，你就知道可以创建一个比特币multisig帐户，只有当多方签署交易时才能花费资金（例如，2个签名中的2个或4个中的3个）。以太坊的基本EOA价值交易没有多个签名的规定;但是，任意签名限制都可以通过智能合约强制执行，具有你能想到的任何条件，以处理ether和通证的转移。
 
-To take advantage of this capability, ether has to be transferred to a "wallet contract" that is programmed with the spending rules desired, such as multisignature requirements or spending limits (or combinations of the two). The wallet contract then sends the funds when prompted by an authorized EOA once the spending conditions have been satisfied. For example, to protect your ether under a multisig condition, transfer the ether to a multisig contract. Whenever you want to send funds to another account, all the required users will need to send transactions to the contract using a regular wallet app, effectively authorizing the contract to perform the final transaction.
+为了利用这种能力，ether必须被转移到“钱包合约”，该合约根据所需的支出规则进行编程，例如多重签名要求或支出限额（或两者的组合）。一旦满足支出条件，钱包合约在授权的EOA提示时发送资金。例如，要在多重签名条件下保护你的ether，请将ether转移到多重合约。每当你想要将资金发送到另一个帐户时，所有必需的用户都需要使用常规钱包应用程序向合约发送交易，从而有效地授权合约执行最终交易。
 
-These contracts can also be designed to require multiple signatures before executing local code or to trigger other contracts. The security of the scheme is ultimately determined by the multisig contract code.
+这些合约还可以设计为在执行本地代码之前需要多个签名或触发其他合约。该方案的安全性最终由multisig合约代码决定。
 
-The ability to implement multisignature transactions as a smart contract demonstrates the flexiblity of Ethereum. However, it is a double-edged sword, as the extra flexibility can lead to bugs that undermine the security of multisignature schemes. There are, in fact, a number of proposals to create a multisignature command in the EVM that removes the need for smart contracts, at least for the simple M-of-N multisignature schemes. This would be equivalent to Bitcoin's multisignature system, which is part of the core consensus rules and has proven to be robust and secure.
+将多重签名交易实现为智能合约的能力证明了以太坊的灵活性。然而，这是一把双刃剑，因为额外的灵活性可能导致破坏多重签名方案安全性的漏洞。事实上，有许多提议要在EVM中创建多重签名命令，以消除对智能合约的需求，至少对于简单的M-of-N多重签名方案而言。这相当于比特币的多重签名系统，它是核心共识规则的一部分，并且已被证明是健壮和安全的。
 
-=== Conclusions
+=== 总结
 
-Transactions are the starting point of every activity in the Ethereum system. Transactions are the "inputs" that cause the Ethereum Virtual Machine to evaluate contracts, update balances, and more generally modify the state of the Ethereum blockchain. Next, we will work with smart contracts in a lot more detail and learn how to program in the Solidity contract-oriented language.
+交易是以太坊系统中每项活动的起点。交易是导致以太坊虚拟机执行合约，更新余额以及更一般地说修改以太坊区块链状态的“输入”。接下来，我们将更详细地学习智能合约，并学习如何使用Solidity面向合约的语言进行编程。
